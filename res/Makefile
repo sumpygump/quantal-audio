@@ -1,7 +1,7 @@
 
 INKSCAPE=inkscape
 SVGO=svgo
-SVGS=MasterMixer.svg
+SVGS=MasterMixer.svg BufferedMult.svg UnityMix.svg
 
 all: $(SVGS)
 
@@ -9,3 +9,13 @@ MasterMixer.svg: src/MasterMixer.src.svg
 	$(INKSCAPE) src/MasterMixer.src.svg --export-plain-svg=MasterMixer-textpaths.svg --export-text-to-path
 	$(SVGO) -i MasterMixer-textpaths.svg -o MasterMixer.svg
 	rm MasterMixer-textpaths.svg
+
+BufferedMult.svg: src/BufferedMult.src.svg
+	$(INKSCAPE) src/BufferedMult.src.svg --export-plain-svg=BufferedMult-textpaths.svg --export-text-to-path
+	$(SVGO) -i BufferedMult-textpaths.svg -o BufferedMult.svg
+	rm BufferedMult-textpaths.svg
+
+UnityMix.svg: src/UnityMix.src.svg
+	$(INKSCAPE) src/UnityMix.src.svg --export-plain-svg=UnityMix-textpaths.svg --export-text-to-path
+	$(SVGO) -i UnityMix-textpaths.svg -o UnityMix.svg
+	rm UnityMix-textpaths.svg

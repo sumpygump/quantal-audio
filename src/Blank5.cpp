@@ -13,4 +13,4 @@ struct Blank5Widget : ModuleWidget {
 };
 
 
-Model *modelBlank5 = Model::create<Module, Blank5Widget>("QuantalAudio", "Blank5", "Blank Panel - 5 Slots Wide", BLANK_TAG);
+Model *modelBlank5 = Model::create<Module, Blank5Widget>("QuantalAudio", "Blank5", "Blank Panel - 5HP", BLANK_TAG);
