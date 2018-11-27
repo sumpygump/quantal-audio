@@ -86,4 +86,4 @@ struct MasterMixerWidget : ModuleWidget {
     }
 };
 
-Model *modelMasterMixer = Model::create<MasterMixer, MasterMixerWidget>("QuantalAudio", "Mixer2", "Mixer 2 | Mono->Stereo", MIXER_TAG, AMPLIFIER_TAG);
+Model *modelMasterMixer = Model::create<MasterMixer, MasterMixerWidget>("QuantalAudio", "Mixer2", "Mixer 2 | Mono->Stereo | 5HP", MIXER_TAG, AMPLIFIER_TAG);
