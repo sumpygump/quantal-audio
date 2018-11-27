@@ -1,13 +1,15 @@
 
-# VCV Template plugin
+# Quantal Audio VCV Rack Plugins
 
-The VCV Template plugin is a starting point for developing your own plugins for VCV Rack.
-It implements a simple sine VCO, demonstrating inputs, outputs, parameters, and other concepts.
+This is a series of plugins for [VCV Rack](https://vcvrack.com/).
 
-See https://vcvrack.com/manual/PluginDevelopmentTutorial.html for a development tutorial.
+Currently this plugin pack includes the following plugins:
 
-## Contributing
-
-I welcome Issues and Pull Requests to this repository if you have suggestions for improvement.
-
-This template is released into the public domain ([CC0](https://creativecommons.org/publicdomain/zero/1.0/)).
+- *Master Mixer.* A 2-channel mixer with a mono/stereo switch. In mono mode,
+  input channel 1 will be copied to channel two's output. This is useful if you
+  want to copy a mono signal to route to modules that need stereo inputs (for
+  example, L and R channels of Core Audio module).
+- *Buffered Multiple.* Two 1x3 voltage copies. With switch in the middle it can
+  turn into a 1x6 copier.
+- *Unity Mix.* Sum and average signals from 3 inputs into 1 output. With switch
+  in middle in can take 6 inputs two 2 outputs.
