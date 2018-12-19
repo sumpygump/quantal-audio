@@ -10,6 +10,8 @@ extern Plugin *plugin;
 extern Model *modelMasterMixer;
 extern Model *modelBufferedMult;
 extern Model *modelUnityMix;
+extern Model *modelDaisyChannel;
+extern Model *modelDaisyMaster;
 extern Model *modelBlank1;
 extern Model *modelBlank3;
 extern Model *modelBlank5;
