@@ -19,45 +19,35 @@ struct UnityMix : Module {
 
     UnityMix() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {}
 
-    void step() override {
-        bool unconnect = (params[CONNECT_PARAM].value > 0.0f);
-
-        // Group A
-        // Inputs 0 1 2 -> Output 0
+    float mixchannels(int in_start, int in_end) {
         float mix = 0.f;
         float channels = 0.f;
-        for (int i = 0; i <= 2; i++) {
+
+        for (int i = in_start; i <= in_end; i++) {
             if (inputs[CH_INPUT + i].active) {
-                mix += inputs[CH_INPUT + i].normalize(0.0);
-                channels += 0.9f;
+                mix += inputs[CH_INPUT + i].value;
+                channels++;
             }
         }
         if (channels > 0.f)
             mix = mix / channels;
-        outputs[CH_OUTPUT + 0].value = mix;
 
-        // Inputs 3 4 5 -> Output 1
-        // otherwise Inputs 3 4 5 are also summed and put in output 1
+        return mix;
+    }
+
+    void step() override {
+        bool unconnect = (params[CONNECT_PARAM].value > 0.0f);
+
         if (unconnect) {
-            mix = 0.f;
-            channels = 0.f;
-        }
-
-        // Group B
-        bool add_group_b = false;
-        for (int i = 3; i <= 5; i++) {
-            if (inputs[CH_INPUT + i].active) {
-                mix += inputs[CH_INPUT + i].normalize(0.0);
-                channels += 0.9f;
-                add_group_b = true;
-            }
-        }
-        if (add_group_b && channels > 0.f)
-            mix = mix / channels;
-        outputs[CH_OUTPUT + 1].value = mix;
-
-        if (!unconnect) {
+            // Group A : Inputs 0 1 2 -> Output 0
+            outputs[CH_OUTPUT + 0].value = mixchannels(0, 2);
+            // Group B : Inputs 3 4 5 -> Output 1
+            outputs[CH_OUTPUT + 1].value = mixchannels(3, 5);
+        } else {
+            // Combined : Inputs 0-5 -> Output 1 & 2
+            float mix = mixchannels(0, 5);
             outputs[CH_OUTPUT + 0].value = mix;
+            outputs[CH_OUTPUT + 1].value = mix;
         }
     }
 };
