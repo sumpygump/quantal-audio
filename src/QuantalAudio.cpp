@@ -15,6 +15,7 @@ void init(Plugin *p) {
 	p->addModel(modelUnityMix);
 	p->addModel(modelDaisyChannel);
 	p->addModel(modelDaisyMaster);
+	p->addModel(modelHorsehair);
 	p->addModel(modelBlank1);
 	p->addModel(modelBlank3);
 	p->addModel(modelBlank5);

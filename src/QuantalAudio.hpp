@@ -12,6 +12,7 @@ extern Model *modelBufferedMult;
 extern Model *modelUnityMix;
 extern Model *modelDaisyChannel;
 extern Model *modelDaisyMaster;
+extern Model *modelHorsehair;
 extern Model *modelBlank1;
 extern Model *modelBlank3;
 extern Model *modelBlank5;

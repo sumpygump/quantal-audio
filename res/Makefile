@@ -1,7 +1,7 @@
 
 INKSCAPE=inkscape
 SVGO=svgo
-SVGS=MasterMixer.svg BufferedMult.svg UnityMix.svg DaisyChannel.svg DaisyMaster.svg
+SVGS=MasterMixer.svg BufferedMult.svg UnityMix.svg DaisyChannel.svg DaisyMaster.svg Horsehair.svg
 
 all: $(SVGS)
 
@@ -29,3 +29,8 @@ DaisyMaster.svg: src/DaisyMaster.src.svg
 	$(INKSCAPE) src/DaisyMaster.src.svg --export-plain-svg=DaisyMaster-textpaths.svg --export-text-to-path
 	$(SVGO) -i DaisyMaster-textpaths.svg -o DaisyMaster.svg
 	rm DaisyMaster-textpaths.svg
+
+Horsehair.svg: src/Horsehair.src.svg
+	$(INKSCAPE) src/Horsehair.src.svg --export-plain-svg=Horsehair-textpaths.svg --export-text-to-path
+	$(SVGO) -i Horsehair-textpaths.svg -o Horsehair.svg
+	rm Horsehair-textpaths.svg
