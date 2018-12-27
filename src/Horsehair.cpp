@@ -118,7 +118,7 @@ struct Horsehair : Module {
         }
         if (inputs[SHAPE_CV_INPUT + 1].active) {
             shape2 += inputs[SHAPE_CV_INPUT + 1].value / 10.0;
-            shape = clamp(shape, 0.0f, 1.0f);
+            shape2 = clamp(shape2, 0.0f, 1.0f);
         }
 
         float out = 0.0f;
