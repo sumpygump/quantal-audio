@@ -149,7 +149,7 @@ struct HorsehairWidget : ModuleWidget {
         addChild(Widget::create<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
         // Pitch & CV
-        addParam(ParamWidget::create<RoundSmallBlackKnob>(Vec(RACK_GRID_WIDTH * 4 + 3, 50.0), module, Horsehair::PITCH_PARAM, -6.0f, 6.0f, 0.0f));
+        addParam(ParamWidget::create<RoundSmallBlackKnob>(Vec(RACK_GRID_WIDTH * 4 + 3, 50.0), module, Horsehair::PITCH_PARAM, -2.0f, 2.0f, 0.0f));
         addInput(Port::create<PJ301MPort>(Vec(RACK_GRID_WIDTH + 3, 50.0), Port::INPUT, module, Horsehair::PITCH_INPUT));
 
         // Octave
