@@ -7,6 +7,10 @@ This is a series of plugins for [VCV Rack](https://vcvrack.com/).
 
 Modules in this plugin pack:
 
+## Horsehair VCO | 7HP
+
+This is an oscillator module with 3 oscillators. The main two oscillators (A and B) are interpolated between square and saw waves. For each of the two main oscillators, you can modulate the octave for each independently as well as the shape (change smoothly between square and saw) and the pulse width (only affects the square wave component of the oscillation). The shape and pulse width can be modulated with CV inputs. A mix knob interpolates between osc A and osc B and also has a CV input. The main output will provide the mix output of osc A and B. There is also a sin output that provides a basic sine wave, good for a sub out to be processed separately with the main oscillator output.
+
 ## MULT | Buffered Multiple | 2HP
 
 Two 1x3 voltage copies. With switch in the middle in the down position, it will turn into a 1x6 copier.
@@ -28,7 +32,7 @@ It is not recommended to send voltage signals in or out of the daisy plugs other
 ## DSY-MX | Daisy Mix Master | 3HP
 
 The Daisy mix master acts as a bus for daisy chained channel mods. It has a master fader knob with CV control and a mute button. The master bus will clamp signals to (+/-) 12 volt output signal.
-  
+
 ## MIXER-2 | Master Mixer | 5HP
 
 A 2-channel mixer with a mono/stereo switch. In mono mode, input channel 1 will be copied to channel two's output. This is useful if you want to copy a mono signal to route to modules that need stereo inputs (for example, L and R channels of Core Audio module).
