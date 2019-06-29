@@ -29,7 +29,10 @@ struct DaisyChannel : Module {
     dsp::SchmittTrigger muteTrigger;
 
     DaisyChannel() {
-        config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);}
+        config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
+        configParam(CH_LVL_PARAM, 0.0f, 1.0f, 1.0f);
+        configParam(MUTE_PARAM, 0.0f, 1.0f, 0.0f);
+    }
 
     json_t *dataToJson() override {
         json_t *rootJ = json_object();
@@ -85,11 +88,11 @@ struct DaisyChannelWidget : ModuleWidget {
         addOutput(createOutput<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 245.0), module, DaisyChannel::CH_OUTPUT));
 
         // Level & CV
-        addParam(createParam<LEDSliderGreen>(Vec(RACK_GRID_WIDTH - 10.5, 121.4), module, DaisyChannel::CH_LVL_PARAM, 0.0, 1.0, 1.0));
+        addParam(createParam<LEDSliderGreen>(Vec(RACK_GRID_WIDTH - 10.5, 121.4), module, DaisyChannel::CH_LVL_PARAM));
         addInput(createInput<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 89.0), module, DaisyChannel::LVL_CV_INPUT));
 
         // Mute
-        addParam(createParam<LEDButton>(Vec(RACK_GRID_WIDTH - 9.0, 206.0), module, DaisyChannel::MUTE_PARAM, 0.0f, 1.0f, 0.0f));
+        addParam(createParam<LEDButton>(Vec(RACK_GRID_WIDTH - 9.0, 206.0), module, DaisyChannel::MUTE_PARAM));
         addChild(createLight<MediumLight<RedLight>>(Vec(RACK_GRID_WIDTH - 4.5, 210.25f), module, DaisyChannel::MUTE_LIGHT));
 
         // Chain Input/Output

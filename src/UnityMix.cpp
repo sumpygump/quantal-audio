@@ -18,7 +18,9 @@ struct UnityMix : Module {
     };
 
     UnityMix() {
-        config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);}
+        config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
+        configParam(CONNECT_PARAM, 0.0f, 1.0f, 1.0f);
+    }
 
     float mixchannels(int in_start, int in_end) {
         float mix = 0.f;
@@ -63,7 +65,7 @@ struct UnityMixWidget : ModuleWidget {
         addChild(createWidget<ScrewSilver>(Vec(0, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
         // Connect switch
-        addParam(createParam<CKSS>(Vec(RACK_GRID_WIDTH - 7.0, 182.0), module, UnityMix::CONNECT_PARAM, 0.0f, 1.0f, 1.0f));
+        addParam(createParam<CKSS>(Vec(RACK_GRID_WIDTH - 7.0, 182.0), module, UnityMix::CONNECT_PARAM));
 
         // Group A
         addInput(createInput<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 50.0), module, UnityMix::CH_INPUT + 0));

@@ -20,7 +20,12 @@ struct MasterMixer : Module {
     };
 
     MasterMixer() {
-        config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS);}
+        config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS);
+        configParam(MIX_LVL_PARAM, 0.0f, 2.0f, 1.0f);
+        configParam(MONO_PARAM, 0.0f, 1.0f, 1.0f);
+        configParam(LVL_PARAM + 0, 0.0f, 1.0f, 1.0f);
+        configParam(LVL_PARAM + 1, 0.0f, 1.0f, 1.0f);
+    }
 
     void process(const ProcessArgs &args) override {
         float mix = 0.f;
@@ -64,15 +69,15 @@ struct MasterMixerWidget : ModuleWidget {
         addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
         // Level & CV
-        addParam(createParam<RoundLargeBlackKnob>(Vec(RACK_GRID_WIDTH * 2.5 - (38.0/2), 52.0), module, MasterMixer::MIX_LVL_PARAM, 0.0, 2.0, 1.0));
+        addParam(createParam<RoundLargeBlackKnob>(Vec(RACK_GRID_WIDTH * 2.5 - (38.0/2), 52.0), module, MasterMixer::MIX_LVL_PARAM));
         addInput(createInput<PJ301MPort>(Vec(RACK_GRID_WIDTH * 2.5 - (25.0/2), 96.0), module, MasterMixer::MIX_CV_INPUT));
 
         // Mono/stereo switch
-        addParam(createParam<CKSS>(Vec(RACK_GRID_WIDTH * 2.5 - 7.0, 162.0), module, MasterMixer::MONO_PARAM, 0.0f, 1.0f, 1.0f));
+        addParam(createParam<CKSS>(Vec(RACK_GRID_WIDTH * 2.5 - 7.0, 162.0), module, MasterMixer::MONO_PARAM));
 
         // LEDs
-        addParam(createParam<LEDSliderGreen>(Vec(RACK_GRID_WIDTH * 2.5 - (21.0 + 7.0), 130.4), module, MasterMixer::LVL_PARAM + 0, 0.0, 1.0, 1.0));
-        addParam(createParam<LEDSliderGreen>(Vec(RACK_GRID_WIDTH * 2.5 + 7.0, 130.4), module, MasterMixer::LVL_PARAM + 1, 0.0, 1.0, 1.0));
+        addParam(createParam<LEDSliderGreen>(Vec(RACK_GRID_WIDTH * 2.5 - (21.0 + 7.0), 130.4), module, MasterMixer::LVL_PARAM + 0));
+        addParam(createParam<LEDSliderGreen>(Vec(RACK_GRID_WIDTH * 2.5 + 7.0, 130.4), module, MasterMixer::LVL_PARAM + 1));
 
         // Channel inputs
         addInput(createInput<PJ301MPort>(Vec((RACK_GRID_WIDTH * 2.5) - (25.0 + 5.0), 232.0), module, MasterMixer::CH_INPUT + 0));

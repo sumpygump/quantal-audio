@@ -48,7 +48,7 @@ struct VoltageControlledOscillator {
 
             // Advance phase
             phase += deltaPhase / OVERSAMPLE;
-            phase = eucmod(phase, 1.0f);
+            phase = eucMod(phase, 1.0f);
         }
     }
 
@@ -96,7 +96,16 @@ struct Horsehair : Module {
     VoltageControlledOscillator<16, 16> oscillator2;
 
     Horsehair() {
-        config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);}
+        config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
+        configParam(PITCH_PARAM, -2.0f, 2.0f, 0.0f);
+        configParam(OCTAVE_PARAM + 0, -5.0f, 4.0f, -2.0f);
+        configParam(OCTAVE_PARAM + 1, -5.0f, 4.0f, -1.0f);
+        configParam(SHAPE_PARAM + 0, 0.0f, 1.0f, 0.0f);
+        configParam(SHAPE_PARAM + 1, 0.0f, 1.0f, 1.0f);
+        configParam(PW_PARAM + 0, 0.0f, 1.0f, 0.5f);
+        configParam(PW_PARAM + 1, 0.0f, 1.0f, 0.5f);
+        configParam(MIX_PARAM, 0.0f, 1.0f, 0.5f);
+    }
 
     void process(const ProcessArgs &args) override {
         float pitchCv = 12.0f * inputs[PITCH_INPUT].getVoltage();
@@ -149,27 +158,27 @@ struct HorsehairWidget : ModuleWidget {
         addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
         // Pitch & CV
-        addParam(createParam<RoundSmallBlackKnob>(Vec(RACK_GRID_WIDTH * 4 + 3, 50.0), module, Horsehair::PITCH_PARAM, -2.0f, 2.0f, 0.0f));
+        addParam(createParam<RoundSmallBlackKnob>(Vec(RACK_GRID_WIDTH * 4 + 3, 50.0), module, Horsehair::PITCH_PARAM));
         addInput(createInput<PJ301MPort>(Vec(RACK_GRID_WIDTH + 3, 50.0), module, Horsehair::PITCH_INPUT));
 
         // Octave
-        addParam(createParam<RoundBlackSnapKnob>(Vec(RACK_GRID_WIDTH, 93.0), module, Horsehair::OCTAVE_PARAM + 0, -5.0f, 4.0f, -2.0f));
-        addParam(createParam<RoundBlackSnapKnob>(Vec(RACK_GRID_WIDTH * 4, 93.0), module, Horsehair::OCTAVE_PARAM + 1, -5.0f, 4.0f, -1.0f));
+        addParam(createParam<RoundBlackSnapKnob>(Vec(RACK_GRID_WIDTH, 93.0), module, Horsehair::OCTAVE_PARAM + 0));
+        addParam(createParam<RoundBlackSnapKnob>(Vec(RACK_GRID_WIDTH * 4, 93.0), module, Horsehair::OCTAVE_PARAM + 1));
 
         // Shape
-        addParam(createParam<RoundBlackKnob>(Vec(RACK_GRID_WIDTH, 142.0), module, Horsehair::SHAPE_PARAM + 0, 0.0f, 1.0f, 0.0f));
-        addParam(createParam<RoundBlackKnob>(Vec(RACK_GRID_WIDTH * 4, 142.0), module, Horsehair::SHAPE_PARAM + 1, 0.0f, 1.0f, 1.0f));
+        addParam(createParam<RoundBlackKnob>(Vec(RACK_GRID_WIDTH, 142.0), module, Horsehair::SHAPE_PARAM + 0));
+        addParam(createParam<RoundBlackKnob>(Vec(RACK_GRID_WIDTH * 4, 142.0), module, Horsehair::SHAPE_PARAM + 1));
         addInput(createInput<PJ301MPort>(Vec(RACK_GRID_WIDTH - 11.5, 172.0), module, Horsehair::SHAPE_CV_INPUT + 0));
         addInput(createInput<PJ301MPort>(Vec(RACK_GRID_WIDTH * 4 + 16.5, 172.0), module, Horsehair::SHAPE_CV_INPUT + 1));
 
         // Pulse width
-        addParam(createParam<RoundBlackKnob>(Vec(RACK_GRID_WIDTH, 215.0), module, Horsehair::PW_PARAM + 0, 0.0f, 1.0f, 0.5f));
-        addParam(createParam<RoundBlackKnob>(Vec(RACK_GRID_WIDTH * 4, 215.0), module, Horsehair::PW_PARAM + 1, 0.0f, 1.0f, 0.5f));
+        addParam(createParam<RoundBlackKnob>(Vec(RACK_GRID_WIDTH, 215.0), module, Horsehair::PW_PARAM + 0));
+        addParam(createParam<RoundBlackKnob>(Vec(RACK_GRID_WIDTH * 4, 215.0), module, Horsehair::PW_PARAM + 1));
         addInput(createInput<PJ301MPort>(Vec(RACK_GRID_WIDTH - 11.5, 245.0), module, Horsehair::PW_CV_INPUT + 0));
         addInput(createInput<PJ301MPort>(Vec(RACK_GRID_WIDTH * 4 + 16.5, 245.0), module, Horsehair::PW_CV_INPUT + 1));
 
         // Osc Mix
-        addParam(createParam<RoundLargeBlackKnob>(Vec(RACK_GRID_WIDTH * 3.5 - (38.0/2), 264.0), module, Horsehair::MIX_PARAM, 0.0f, 1.0f, 0.5f));
+        addParam(createParam<RoundLargeBlackKnob>(Vec(RACK_GRID_WIDTH * 3.5 - (38.0/2), 264.0), module, Horsehair::MIX_PARAM));
         addInput(createInput<PJ301MPort>(Vec(RACK_GRID_WIDTH - 8, 277.0), module, Horsehair::MIX_CV_INPUT));
 
         // Output

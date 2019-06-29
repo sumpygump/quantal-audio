@@ -18,7 +18,9 @@ struct BufferedMult : Module {
     };
 
     BufferedMult() {
-        config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);}
+        config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
+        configParam(CONNECT_PARAM, 0.0f, 1.0f, 1.0f);
+    }
 
     void process(const ProcessArgs &args) override {
         bool unconnect = (params[CONNECT_PARAM].getValue() > 0.0f);
@@ -51,7 +53,7 @@ struct BufferedMultWidget : ModuleWidget {
         addChild(createWidget<ScrewSilver>(Vec(0, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
         // Connect switch
-        addParam(createParam<CKSS>(Vec(RACK_GRID_WIDTH - 7.0, 182.0), module, BufferedMult::CONNECT_PARAM, 0.0f, 1.0f, 1.0f));
+        addParam(createParam<CKSS>(Vec(RACK_GRID_WIDTH - 7.0, 182.0), module, BufferedMult::CONNECT_PARAM));
 
         // Group A
         addInput(createInput<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 50.0), module, BufferedMult::CH_INPUT + 0));

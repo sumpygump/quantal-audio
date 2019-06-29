@@ -27,7 +27,10 @@ struct DaisyMaster : Module {
     dsp::SchmittTrigger muteTrigger;
 
     DaisyMaster() {
-        config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);}
+        config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
+        configParam(MIX_LVL_PARAM, 0.0f, 2.0f, 1.0f);
+        configParam(MUTE_PARAM, 0.0f, 1.0f, 0.0f);
+    }
 
     json_t *dataToJson() override {
         json_t *rootJ = json_object();
@@ -79,11 +82,11 @@ struct DaisyMasterWidget : ModuleWidget {
         addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
         // Level & CV
-        addParam(createParam<RoundLargeBlackKnob>(Vec(RACK_GRID_WIDTH * 1.5 - (38.0/2), 52.0), module, DaisyMaster::MIX_LVL_PARAM, 0.0, 2.0, 1.0));
+        addParam(createParam<RoundLargeBlackKnob>(Vec(RACK_GRID_WIDTH * 1.5 - (38.0/2), 52.0), module, DaisyMaster::MIX_LVL_PARAM));
         addInput(createInput<PJ301MPort>(Vec(RACK_GRID_WIDTH * 1.5 - (25.0/2), 96.0), module, DaisyMaster::MIX_CV_INPUT));
 
         // Mute
-        addParam(createParam<LEDButton>(Vec(RACK_GRID_WIDTH * 1.5 - 9.0, 206.0), module, DaisyMaster::MUTE_PARAM, 0.0f, 1.0f, 0.0f));
+        addParam(createParam<LEDButton>(Vec(RACK_GRID_WIDTH * 1.5 - 9.0, 206.0), module, DaisyMaster::MUTE_PARAM));
         addChild(createLight<MediumLight<RedLight>>(Vec(RACK_GRID_WIDTH * 1.5 - 4.5, 210.25f), module, DaisyMaster::MUTE_LIGHT));
 
         // Mix output
