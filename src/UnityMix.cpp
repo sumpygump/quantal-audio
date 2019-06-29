@@ -18,7 +18,7 @@ struct UnityMix : Module {
     };
 
     UnityMix() {
-		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);}
+        config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);}
 
     float mixchannels(int in_start, int in_end) {
         float mix = 0.f;
@@ -55,7 +55,7 @@ struct UnityMix : Module {
 
 struct UnityMixWidget : ModuleWidget {
     UnityMixWidget(UnityMix *module) {
-		setModule(module);
+        setModule(module);
         setPanel(SVG::load(assetPlugin(pluginInstance, "res/UnityMix.svg")));
 
         // Screws
