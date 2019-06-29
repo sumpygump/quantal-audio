@@ -8,4 +8,4 @@ struct Blank1Widget : ModuleWidget {
 };
 
 
-Model *modelBlank1 = Model::create<Module, Blank1Widget>("QuantalAudio", "Blank1", "Blank Panel | 1HP", BLANK_TAG);
+Model *modelBlank1 = Model::create<Module, Blank1Widget>("Blank1");

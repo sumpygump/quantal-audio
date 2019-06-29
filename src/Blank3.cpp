@@ -11,4 +11,4 @@ struct Blank3Widget : ModuleWidget {
 };
 
 
-Model *modelBlank3 = Model::create<Module, Blank3Widget>("QuantalAudio", "Blank3", "Blank Panel | 3HP", BLANK_TAG);
+Model *modelBlank3 = Model::create<Module, Blank3Widget>("Blank3");

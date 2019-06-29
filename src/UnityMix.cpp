@@ -77,4 +77,4 @@ struct UnityMixWidget : ModuleWidget {
     }
 };
 
-Model *modelUnityMix = Model::create<UnityMix, UnityMixWidget>("QuantalAudio", "UnityMix", "Unity Mix | 2HP", MULTIPLE_TAG);
+Model *modelUnityMix = Model::create<UnityMix, UnityMixWidget>("UnityMix");

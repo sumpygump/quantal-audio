@@ -181,4 +181,4 @@ struct HorsehairWidget : ModuleWidget {
     }
 };
 
-Model *modelHorsehair = Model::create<Horsehair, HorsehairWidget>("QuantalAudio", "Horsehair", "Horsehair VCO | 7HP", OSCILLATOR_TAG);
+Model *modelHorsehair = Model::create<Horsehair, HorsehairWidget>("Horsehair");

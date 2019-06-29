@@ -97,4 +97,4 @@ struct DaisyChannelWidget : ModuleWidget {
     }
 };
 
-Model *modelDaisyChannel = Model::create<DaisyChannel, DaisyChannelWidget>("QuantalAudio", "DaisyChannel", "Daisy Mix Channel | 2HP", MIXER_TAG);
+Model *modelDaisyChannel = Model::create<DaisyChannel, DaisyChannelWidget>("DaisyChannel");

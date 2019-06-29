@@ -65,4 +65,4 @@ struct BufferedMultWidget : ModuleWidget {
     }
 };
 
-Model *modelBufferedMult = Model::create<BufferedMult, BufferedMultWidget>("QuantalAudio", "BufferedMult", "Buffered Mult | 2HP", MULTIPLE_TAG);
+Model *modelBufferedMult = Model::create<BufferedMult, BufferedMultWidget>("BufferedMult");

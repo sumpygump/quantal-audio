@@ -93,4 +93,4 @@ struct DaisyMasterWidget : ModuleWidget {
     }
 };
 
-Model *modelDaisyMaster = Model::create<DaisyMaster, DaisyMasterWidget>("QuantalAudio", "DaisyMaster", "Daisy Mix Master | 3HP", MIXER_TAG, AMPLIFIER_TAG);
+Model *modelDaisyMaster = Model::create<DaisyMaster, DaisyMasterWidget>("DaisyMaster");
