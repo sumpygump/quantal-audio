@@ -97,7 +97,8 @@ struct Horsehair : Module {
     VoltageControlledOscillator<16, 16> oscillator;
     VoltageControlledOscillator<16, 16> oscillator2;
 
-    Horsehair() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {}
+    Horsehair() {
+		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);}
 
     void step() override {
         float pitchCv = 12.0f * inputs[PITCH_INPUT].value;
@@ -139,7 +140,8 @@ struct Horsehair : Module {
 };
 
 struct HorsehairWidget : ModuleWidget {
-    HorsehairWidget(Horsehair *module) : ModuleWidget(module) {
+    HorsehairWidget(Horsehair *module) {
+		setModule(module);
         setPanel(SVG::load(assetPlugin(pluginInstance, "res/Horsehair.svg")));
 
         // Screws

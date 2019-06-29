@@ -2,7 +2,8 @@
 
 
 struct Blank3Widget : ModuleWidget {
-	Blank3Widget(Module *module) : ModuleWidget(module) {
+	Blank3Widget(Module *module) {
+		setModule(module);
 		setPanel(SVG::load(assetPlugin(pluginInstance, "res/blank-3.svg")));
 
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
