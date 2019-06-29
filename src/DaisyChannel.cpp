@@ -74,7 +74,7 @@ struct DaisyChannel : Module {
 struct DaisyChannelWidget : ModuleWidget {
     DaisyChannelWidget(DaisyChannel *module) {
         setModule(module);
-        setPanel(SVG::load(assetPlugin(pluginInstance, "res/DaisyChannel.svg")));
+        setPanel(APP->window->loadSvg(assetPlugin(pluginInstance, "res/DaisyChannel.svg")));
 
         // Screws
         addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));

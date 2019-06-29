@@ -55,7 +55,7 @@ struct MasterMixer : Module {
 struct MasterMixerWidget : ModuleWidget {
     MasterMixerWidget(MasterMixer *module) {
         setModule(module);
-        setPanel(SVG::load(assetPlugin(pluginInstance, "res/MasterMixer.svg")));
+        setPanel(APP->window->loadSvg(assetPlugin(pluginInstance, "res/MasterMixer.svg")));
 
         // Screws
         addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
