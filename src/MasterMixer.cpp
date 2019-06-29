@@ -20,7 +20,7 @@ struct MasterMixer : Module {
     };
 
     MasterMixer() {
-		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS);}
+        config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS);}
 
     void step() override {
         float mix = 0.f;
@@ -54,7 +54,7 @@ struct MasterMixer : Module {
 
 struct MasterMixerWidget : ModuleWidget {
     MasterMixerWidget(MasterMixer *module) {
-		setModule(module);
+        setModule(module);
         setPanel(SVG::load(assetPlugin(pluginInstance, "res/MasterMixer.svg")));
 
         // Screws

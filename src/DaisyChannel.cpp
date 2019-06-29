@@ -1,5 +1,4 @@
 #include "QuantalAudio.hpp"
-#include "dsp/digital.hpp"
 
 struct DaisyChannel : Module {
     enum ParamIds {
@@ -30,7 +29,7 @@ struct DaisyChannel : Module {
     SchmittTrigger muteTrigger;
 
     DaisyChannel() {
-		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);}
+        config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);}
 
     json_t *dataToJson() override {
         json_t *rootJ = json_object();
@@ -74,7 +73,7 @@ struct DaisyChannel : Module {
 
 struct DaisyChannelWidget : ModuleWidget {
     DaisyChannelWidget(DaisyChannel *module) {
-		setModule(module);
+        setModule(module);
         setPanel(SVG::load(assetPlugin(pluginInstance, "res/DaisyChannel.svg")));
 
         // Screws

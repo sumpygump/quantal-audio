@@ -1,6 +1,5 @@
 #include "rack0.hpp"
 
-
 using namespace rack;
 
 // Forward-declare the Plugin, defined in Template.cpp

@@ -1,5 +1,4 @@
 #include "QuantalAudio.hpp"
-#include "dsp/digital.hpp"
 
 struct DaisyMaster : Module {
     enum ParamIds {
@@ -28,7 +27,7 @@ struct DaisyMaster : Module {
     SchmittTrigger muteTrigger;
 
     DaisyMaster() {
-		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);}
+        config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);}
 
     json_t *dataToJson() override {
         json_t *rootJ = json_object();
@@ -70,7 +69,7 @@ struct DaisyMaster : Module {
 
 struct DaisyMasterWidget : ModuleWidget {
     DaisyMasterWidget(DaisyMaster *module) {
-		setModule(module);
+        setModule(module);
         setPanel(SVG::load(assetPlugin(pluginInstance, "res/DaisyMaster.svg")));
 
         // Screws

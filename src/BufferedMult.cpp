@@ -18,7 +18,7 @@ struct BufferedMult : Module {
     };
 
     BufferedMult() {
-		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);}
+        config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);}
 
     void step() override {
         bool unconnect = (params[CONNECT_PARAM].value > 0.0f);
@@ -43,7 +43,7 @@ struct BufferedMult : Module {
 
 struct BufferedMultWidget : ModuleWidget {
     BufferedMultWidget(BufferedMult *module) {
-		setModule(module);
+        setModule(module);
         setPanel(SVG::load(assetPlugin(pluginInstance, "res/BufferedMult.svg")));
 
         // Screws
