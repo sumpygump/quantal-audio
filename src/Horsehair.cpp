@@ -143,42 +143,42 @@ struct HorsehairWidget : ModuleWidget {
         setPanel(SVG::load(assetPlugin(pluginInstance, "res/Horsehair.svg")));
 
         // Screws
-        addChild(Widget::create<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
-        addChild(Widget::create<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
-        addChild(Widget::create<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
-        addChild(Widget::create<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+        addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
+        addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
+        addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+        addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
         // Pitch & CV
-        addParam(ParamWidget::create<RoundSmallBlackKnob>(Vec(RACK_GRID_WIDTH * 4 + 3, 50.0), module, Horsehair::PITCH_PARAM, -2.0f, 2.0f, 0.0f));
-        addInput(Port::create<PJ301MPort>(Vec(RACK_GRID_WIDTH + 3, 50.0), Port::INPUT, module, Horsehair::PITCH_INPUT));
+        addParam(createParam<RoundSmallBlackKnob>(Vec(RACK_GRID_WIDTH * 4 + 3, 50.0), module, Horsehair::PITCH_PARAM, -2.0f, 2.0f, 0.0f));
+        addInput(createPort<PJ301MPort>(Vec(RACK_GRID_WIDTH + 3, 50.0), PortWidget::INPUT, module, Horsehair::PITCH_INPUT));
 
         // Octave
-        addParam(ParamWidget::create<RoundBlackSnapKnob>(Vec(RACK_GRID_WIDTH, 93.0), module, Horsehair::OCTAVE_PARAM + 0, -5.0f, 4.0f, -2.0f));
-        addParam(ParamWidget::create<RoundBlackSnapKnob>(Vec(RACK_GRID_WIDTH * 4, 93.0), module, Horsehair::OCTAVE_PARAM + 1, -5.0f, 4.0f, -1.0f));
+        addParam(createParam<RoundBlackSnapKnob>(Vec(RACK_GRID_WIDTH, 93.0), module, Horsehair::OCTAVE_PARAM + 0, -5.0f, 4.0f, -2.0f));
+        addParam(createParam<RoundBlackSnapKnob>(Vec(RACK_GRID_WIDTH * 4, 93.0), module, Horsehair::OCTAVE_PARAM + 1, -5.0f, 4.0f, -1.0f));
 
         // Shape
-        addParam(ParamWidget::create<RoundBlackKnob>(Vec(RACK_GRID_WIDTH, 142.0), module, Horsehair::SHAPE_PARAM + 0, 0.0f, 1.0f, 0.0f));
-        addParam(ParamWidget::create<RoundBlackKnob>(Vec(RACK_GRID_WIDTH * 4, 142.0), module, Horsehair::SHAPE_PARAM + 1, 0.0f, 1.0f, 1.0f));
-        addInput(Port::create<PJ301MPort>(Vec(RACK_GRID_WIDTH - 11.5, 172.0), Port::INPUT, module, Horsehair::SHAPE_CV_INPUT + 0));
-        addInput(Port::create<PJ301MPort>(Vec(RACK_GRID_WIDTH * 4 + 16.5, 172.0), Port::INPUT, module, Horsehair::SHAPE_CV_INPUT + 1));
+        addParam(createParam<RoundBlackKnob>(Vec(RACK_GRID_WIDTH, 142.0), module, Horsehair::SHAPE_PARAM + 0, 0.0f, 1.0f, 0.0f));
+        addParam(createParam<RoundBlackKnob>(Vec(RACK_GRID_WIDTH * 4, 142.0), module, Horsehair::SHAPE_PARAM + 1, 0.0f, 1.0f, 1.0f));
+        addInput(createPort<PJ301MPort>(Vec(RACK_GRID_WIDTH - 11.5, 172.0), PortWidget::INPUT, module, Horsehair::SHAPE_CV_INPUT + 0));
+        addInput(createPort<PJ301MPort>(Vec(RACK_GRID_WIDTH * 4 + 16.5, 172.0), PortWidget::INPUT, module, Horsehair::SHAPE_CV_INPUT + 1));
 
         // Pulse width
-        addParam(ParamWidget::create<RoundBlackKnob>(Vec(RACK_GRID_WIDTH, 215.0), module, Horsehair::PW_PARAM + 0, 0.0f, 1.0f, 0.5f));
-        addParam(ParamWidget::create<RoundBlackKnob>(Vec(RACK_GRID_WIDTH * 4, 215.0), module, Horsehair::PW_PARAM + 1, 0.0f, 1.0f, 0.5f));
-        addInput(Port::create<PJ301MPort>(Vec(RACK_GRID_WIDTH - 11.5, 245.0), Port::INPUT, module, Horsehair::PW_CV_INPUT + 0));
-        addInput(Port::create<PJ301MPort>(Vec(RACK_GRID_WIDTH * 4 + 16.5, 245.0), Port::INPUT, module, Horsehair::PW_CV_INPUT + 1));
+        addParam(createParam<RoundBlackKnob>(Vec(RACK_GRID_WIDTH, 215.0), module, Horsehair::PW_PARAM + 0, 0.0f, 1.0f, 0.5f));
+        addParam(createParam<RoundBlackKnob>(Vec(RACK_GRID_WIDTH * 4, 215.0), module, Horsehair::PW_PARAM + 1, 0.0f, 1.0f, 0.5f));
+        addInput(createPort<PJ301MPort>(Vec(RACK_GRID_WIDTH - 11.5, 245.0), PortWidget::INPUT, module, Horsehair::PW_CV_INPUT + 0));
+        addInput(createPort<PJ301MPort>(Vec(RACK_GRID_WIDTH * 4 + 16.5, 245.0), PortWidget::INPUT, module, Horsehair::PW_CV_INPUT + 1));
 
         // Osc Mix
-        addParam(ParamWidget::create<RoundLargeBlackKnob>(Vec(RACK_GRID_WIDTH * 3.5 - (38.0/2), 264.0), module, Horsehair::MIX_PARAM, 0.0f, 1.0f, 0.5f));
-        addInput(Port::create<PJ301MPort>(Vec(RACK_GRID_WIDTH - 8, 277.0), Port::INPUT, module, Horsehair::MIX_CV_INPUT));
+        addParam(createParam<RoundLargeBlackKnob>(Vec(RACK_GRID_WIDTH * 3.5 - (38.0/2), 264.0), module, Horsehair::MIX_PARAM, 0.0f, 1.0f, 0.5f));
+        addInput(createPort<PJ301MPort>(Vec(RACK_GRID_WIDTH - 8, 277.0), PortWidget::INPUT, module, Horsehair::MIX_CV_INPUT));
 
         // Output
-        addOutput(Port::create<PJ301MPort>(Vec(RACK_GRID_WIDTH + 3, 320.0), Port::OUTPUT, module, Horsehair::MIX_OUTPUT));
-        addOutput(Port::create<PJ301MPort>(Vec(RACK_GRID_WIDTH * 4 + 3, 320.0), Port::OUTPUT, module, Horsehair::SIN_OUTPUT));
+        addOutput(createPort<PJ301MPort>(Vec(RACK_GRID_WIDTH + 3, 320.0), PortWidget::OUTPUT, module, Horsehair::MIX_OUTPUT));
+        addOutput(createPort<PJ301MPort>(Vec(RACK_GRID_WIDTH * 4 + 3, 320.0), PortWidget::OUTPUT, module, Horsehair::SIN_OUTPUT));
 
         // Lights
-        //addChild(ModuleLightWidget::create<SmallLight<GreenRedLight>>(Vec(68, 42.5f), module, Horsehair::OSC_LIGHT));
+        //addChild(createLight<SmallLight<GreenRedLight>>(Vec(68, 42.5f), module, Horsehair::OSC_LIGHT));
     }
 };
 
-Model *modelHorsehair = Model::create<Horsehair, HorsehairWidget>("Horsehair");
+Model *modelHorsehair = createModel<Horsehair, HorsehairWidget>("Horsehair");

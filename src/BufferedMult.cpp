@@ -45,24 +45,24 @@ struct BufferedMultWidget : ModuleWidget {
         setPanel(SVG::load(assetPlugin(pluginInstance, "res/BufferedMult.svg")));
 
         // Screws
-        addChild(Widget::create<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
-        addChild(Widget::create<ScrewSilver>(Vec(0, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+        addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
+        addChild(createWidget<ScrewSilver>(Vec(0, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
         // Connect switch
-        addParam(ParamWidget::create<CKSS>(Vec(RACK_GRID_WIDTH - 7.0, 182.0), module, BufferedMult::CONNECT_PARAM, 0.0f, 1.0f, 1.0f));
+        addParam(createParam<CKSS>(Vec(RACK_GRID_WIDTH - 7.0, 182.0), module, BufferedMult::CONNECT_PARAM, 0.0f, 1.0f, 1.0f));
 
         // Group A
-        addInput(Port::create<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 50.0), Port::INPUT, module, BufferedMult::CH_INPUT + 0));
-        addOutput(Port::create<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 92.0), Port::OUTPUT, module, BufferedMult::CH_OUTPUT + 0));
-        addOutput(Port::create<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 120.0), Port::OUTPUT, module, BufferedMult::CH_OUTPUT + 1));
-        addOutput(Port::create<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 148.0), Port::OUTPUT, module, BufferedMult::CH_OUTPUT + 2));
+        addInput(createPort<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 50.0), PortWidget::INPUT, module, BufferedMult::CH_INPUT + 0));
+        addOutput(createPort<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 92.0), PortWidget::OUTPUT, module, BufferedMult::CH_OUTPUT + 0));
+        addOutput(createPort<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 120.0), PortWidget::OUTPUT, module, BufferedMult::CH_OUTPUT + 1));
+        addOutput(createPort<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 148.0), PortWidget::OUTPUT, module, BufferedMult::CH_OUTPUT + 2));
 
         // Group B
-        addInput(Port::create<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 222.0), Port::INPUT, module, BufferedMult::CH_INPUT + 1));
-        addOutput(Port::create<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 264.0), Port::OUTPUT, module, BufferedMult::CH_OUTPUT + 3));
-        addOutput(Port::create<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 292.0), Port::OUTPUT, module, BufferedMult::CH_OUTPUT + 4));
-        addOutput(Port::create<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 320.0), Port::OUTPUT, module, BufferedMult::CH_OUTPUT + 5));
+        addInput(createPort<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 222.0), PortWidget::INPUT, module, BufferedMult::CH_INPUT + 1));
+        addOutput(createPort<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 264.0), PortWidget::OUTPUT, module, BufferedMult::CH_OUTPUT + 3));
+        addOutput(createPort<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 292.0), PortWidget::OUTPUT, module, BufferedMult::CH_OUTPUT + 4));
+        addOutput(createPort<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 320.0), PortWidget::OUTPUT, module, BufferedMult::CH_OUTPUT + 5));
     }
 };
 
-Model *modelBufferedMult = Model::create<BufferedMult, BufferedMultWidget>("BufferedMult");
+Model *modelBufferedMult = createModel<BufferedMult, BufferedMultWidget>("BufferedMult");

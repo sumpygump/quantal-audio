@@ -8,4 +8,4 @@ struct Blank1Widget : ModuleWidget {
 };
 
 
-Model *modelBlank1 = Model::create<Module, Blank1Widget>("Blank1");
+Model *modelBlank1 = createModel<Module, Blank1Widget>("Blank1");

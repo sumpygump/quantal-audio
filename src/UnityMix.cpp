@@ -57,24 +57,24 @@ struct UnityMixWidget : ModuleWidget {
         setPanel(SVG::load(assetPlugin(pluginInstance, "res/UnityMix.svg")));
 
         // Screws
-        addChild(Widget::create<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
-        addChild(Widget::create<ScrewSilver>(Vec(0, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+        addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
+        addChild(createWidget<ScrewSilver>(Vec(0, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
         // Connect switch
-        addParam(ParamWidget::create<CKSS>(Vec(RACK_GRID_WIDTH - 7.0, 182.0), module, UnityMix::CONNECT_PARAM, 0.0f, 1.0f, 1.0f));
+        addParam(createParam<CKSS>(Vec(RACK_GRID_WIDTH - 7.0, 182.0), module, UnityMix::CONNECT_PARAM, 0.0f, 1.0f, 1.0f));
 
         // Group A
-        addInput(Port::create<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 50.0), Port::INPUT, module, UnityMix::CH_INPUT + 0));
-        addInput(Port::create<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 78.0), Port::INPUT, module, UnityMix::CH_INPUT + 1));
-        addInput(Port::create<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 106.0), Port::INPUT, module, UnityMix::CH_INPUT + 2));
-        addOutput(Port::create<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 148.0), Port::OUTPUT, module, UnityMix::CH_OUTPUT + 0));
+        addInput(createPort<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 50.0), PortWidget::INPUT, module, UnityMix::CH_INPUT + 0));
+        addInput(createPort<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 78.0), PortWidget::INPUT, module, UnityMix::CH_INPUT + 1));
+        addInput(createPort<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 106.0), PortWidget::INPUT, module, UnityMix::CH_INPUT + 2));
+        addOutput(createPort<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 148.0), PortWidget::OUTPUT, module, UnityMix::CH_OUTPUT + 0));
 
         // Group B
-        addInput(Port::create<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 222.0), Port::INPUT, module, UnityMix::CH_INPUT + 3));
-        addInput(Port::create<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 250.0), Port::INPUT, module, UnityMix::CH_INPUT + 4));
-        addInput(Port::create<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 278.0), Port::INPUT, module, UnityMix::CH_INPUT + 5));
-        addOutput(Port::create<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 320.0), Port::OUTPUT, module, UnityMix::CH_OUTPUT + 1));
+        addInput(createPort<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 222.0), PortWidget::INPUT, module, UnityMix::CH_INPUT + 3));
+        addInput(createPort<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 250.0), PortWidget::INPUT, module, UnityMix::CH_INPUT + 4));
+        addInput(createPort<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 278.0), PortWidget::INPUT, module, UnityMix::CH_INPUT + 5));
+        addOutput(createPort<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 320.0), PortWidget::OUTPUT, module, UnityMix::CH_OUTPUT + 1));
     }
 };
 
-Model *modelUnityMix = Model::create<UnityMix, UnityMixWidget>("UnityMix");
+Model *modelUnityMix = createModel<UnityMix, UnityMixWidget>("UnityMix");
