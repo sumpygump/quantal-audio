@@ -66,16 +66,16 @@ struct UnityMixWidget : ModuleWidget {
         addParam(createParam<CKSS>(Vec(RACK_GRID_WIDTH - 7.0, 182.0), module, UnityMix::CONNECT_PARAM, 0.0f, 1.0f, 1.0f));
 
         // Group A
-        addInput(createPort<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 50.0), PortWidget::INPUT, module, UnityMix::CH_INPUT + 0));
-        addInput(createPort<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 78.0), PortWidget::INPUT, module, UnityMix::CH_INPUT + 1));
-        addInput(createPort<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 106.0), PortWidget::INPUT, module, UnityMix::CH_INPUT + 2));
-        addOutput(createPort<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 148.0), PortWidget::OUTPUT, module, UnityMix::CH_OUTPUT + 0));
+        addInput(createInput<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 50.0), module, UnityMix::CH_INPUT + 0));
+        addInput(createInput<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 78.0), module, UnityMix::CH_INPUT + 1));
+        addInput(createInput<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 106.0), module, UnityMix::CH_INPUT + 2));
+        addOutput(createOutput<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 148.0), module, UnityMix::CH_OUTPUT + 0));
 
         // Group B
-        addInput(createPort<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 222.0), PortWidget::INPUT, module, UnityMix::CH_INPUT + 3));
-        addInput(createPort<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 250.0), PortWidget::INPUT, module, UnityMix::CH_INPUT + 4));
-        addInput(createPort<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 278.0), PortWidget::INPUT, module, UnityMix::CH_INPUT + 5));
-        addOutput(createPort<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 320.0), PortWidget::OUTPUT, module, UnityMix::CH_OUTPUT + 1));
+        addInput(createInput<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 222.0), module, UnityMix::CH_INPUT + 3));
+        addInput(createInput<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 250.0), module, UnityMix::CH_INPUT + 4));
+        addInput(createInput<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 278.0), module, UnityMix::CH_INPUT + 5));
+        addOutput(createOutput<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 320.0), module, UnityMix::CH_OUTPUT + 1));
     }
 };
 

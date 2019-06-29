@@ -80,17 +80,17 @@ struct DaisyMasterWidget : ModuleWidget {
 
         // Level & CV
         addParam(createParam<RoundLargeBlackKnob>(Vec(RACK_GRID_WIDTH * 1.5 - (38.0/2), 52.0), module, DaisyMaster::MIX_LVL_PARAM, 0.0, 2.0, 1.0));
-        addInput(createPort<PJ301MPort>(Vec(RACK_GRID_WIDTH * 1.5 - (25.0/2), 96.0), PortWidget::INPUT, module, DaisyMaster::MIX_CV_INPUT));
+        addInput(createInput<PJ301MPort>(Vec(RACK_GRID_WIDTH * 1.5 - (25.0/2), 96.0), module, DaisyMaster::MIX_CV_INPUT));
 
         // Mute
         addParam(createParam<LEDButton>(Vec(RACK_GRID_WIDTH * 1.5 - 9.0, 206.0), module, DaisyMaster::MUTE_PARAM, 0.0f, 1.0f, 0.0f));
         addChild(createLight<MediumLight<RedLight>>(Vec(RACK_GRID_WIDTH * 1.5 - 4.5, 210.25f), module, DaisyMaster::MUTE_LIGHT));
 
         // Mix output
-        addOutput(createPort<PJ301MPort>(Vec((RACK_GRID_WIDTH * 1.5) - (25.0/2), 245.0), PortWidget::OUTPUT, module, DaisyMaster::MIX_OUTPUT));
+        addOutput(createOutput<PJ301MPort>(Vec((RACK_GRID_WIDTH * 1.5) - (25.0/2), 245.0), module, DaisyMaster::MIX_OUTPUT));
 
         // Chain input
-        addInput(createPort<PJ301MPort>(Vec((RACK_GRID_WIDTH * 1.5) - (25.0/2), 290.5), PortWidget::INPUT, module, DaisyMaster::CHAIN_INPUT));
+        addInput(createInput<PJ301MPort>(Vec((RACK_GRID_WIDTH * 1.5) - (25.0/2), 290.5), module, DaisyMaster::CHAIN_INPUT));
     }
 };
 

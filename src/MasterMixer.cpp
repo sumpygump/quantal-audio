@@ -65,7 +65,7 @@ struct MasterMixerWidget : ModuleWidget {
 
         // Level & CV
         addParam(createParam<RoundLargeBlackKnob>(Vec(RACK_GRID_WIDTH * 2.5 - (38.0/2), 52.0), module, MasterMixer::MIX_LVL_PARAM, 0.0, 2.0, 1.0));
-        addInput(createPort<PJ301MPort>(Vec(RACK_GRID_WIDTH * 2.5 - (25.0/2), 96.0), PortWidget::INPUT, module, MasterMixer::MIX_CV_INPUT));
+        addInput(createInput<PJ301MPort>(Vec(RACK_GRID_WIDTH * 2.5 - (25.0/2), 96.0), module, MasterMixer::MIX_CV_INPUT));
 
         // Mono/stereo switch
         addParam(createParam<CKSS>(Vec(RACK_GRID_WIDTH * 2.5 - 7.0, 162.0), module, MasterMixer::MONO_PARAM, 0.0f, 1.0f, 1.0f));
@@ -75,16 +75,16 @@ struct MasterMixerWidget : ModuleWidget {
         addParam(createParam<LEDSliderGreen>(Vec(RACK_GRID_WIDTH * 2.5 + 7.0, 130.4), module, MasterMixer::LVL_PARAM + 1, 0.0, 1.0, 1.0));
 
         // Channel inputs
-        addInput(createPort<PJ301MPort>(Vec((RACK_GRID_WIDTH * 2.5) - (25.0 + 5.0), 232.0), PortWidget::INPUT, module, MasterMixer::CH_INPUT + 0));
-        addInput(createPort<PJ301MPort>(Vec((RACK_GRID_WIDTH * 2.5) + 5.0, 232.0), PortWidget::INPUT, module, MasterMixer::CH_INPUT + 1));
+        addInput(createInput<PJ301MPort>(Vec((RACK_GRID_WIDTH * 2.5) - (25.0 + 5.0), 232.0), module, MasterMixer::CH_INPUT + 0));
+        addInput(createInput<PJ301MPort>(Vec((RACK_GRID_WIDTH * 2.5) + 5.0, 232.0), module, MasterMixer::CH_INPUT + 1));
 
         // Channel outputs
-        addOutput(createPort<PJ301MPort>(Vec((RACK_GRID_WIDTH * 2.5) - (25.0 + 5.0), 276.0), PortWidget::OUTPUT, module, MasterMixer::CH_OUTPUT + 0));
-        addOutput(createPort<PJ301MPort>(Vec((RACK_GRID_WIDTH * 2.5) + 5.0, 276.0), PortWidget::OUTPUT, module, MasterMixer::CH_OUTPUT + 1));
+        addOutput(createOutput<PJ301MPort>(Vec((RACK_GRID_WIDTH * 2.5) - (25.0 + 5.0), 276.0), module, MasterMixer::CH_OUTPUT + 0));
+        addOutput(createOutput<PJ301MPort>(Vec((RACK_GRID_WIDTH * 2.5) + 5.0, 276.0), module, MasterMixer::CH_OUTPUT + 1));
 
         // Mix outputs
-        addOutput(createPort<PJ301MPort>(Vec((RACK_GRID_WIDTH * 2.5) - (25.0 + 5.0), 320.0), PortWidget::OUTPUT, module, MasterMixer::MIX_OUTPUT));
-        addOutput(createPort<PJ301MPort>(Vec((RACK_GRID_WIDTH * 2.5) + 5.0, 320.0), PortWidget::OUTPUT, module, MasterMixer::MIX_OUTPUT_2));
+        addOutput(createOutput<PJ301MPort>(Vec((RACK_GRID_WIDTH * 2.5) - (25.0 + 5.0), 320.0), module, MasterMixer::MIX_OUTPUT));
+        addOutput(createOutput<PJ301MPort>(Vec((RACK_GRID_WIDTH * 2.5) + 5.0, 320.0), module, MasterMixer::MIX_OUTPUT_2));
     }
 };
 

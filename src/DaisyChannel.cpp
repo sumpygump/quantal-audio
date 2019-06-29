@@ -81,20 +81,20 @@ struct DaisyChannelWidget : ModuleWidget {
         addChild(createWidget<ScrewSilver>(Vec(0, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
         // Channel Input/Output
-        addInput(createPort<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 50.0), PortWidget::INPUT, module, DaisyChannel::CH_INPUT));
-        addOutput(createPort<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 245.0), PortWidget::OUTPUT, module, DaisyChannel::CH_OUTPUT));
+        addInput(createInput<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 50.0), module, DaisyChannel::CH_INPUT));
+        addOutput(createOutput<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 245.0), module, DaisyChannel::CH_OUTPUT));
 
         // Level & CV
         addParam(createParam<LEDSliderGreen>(Vec(RACK_GRID_WIDTH - 10.5, 121.4), module, DaisyChannel::CH_LVL_PARAM, 0.0, 1.0, 1.0));
-        addInput(createPort<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 89.0), PortWidget::INPUT, module, DaisyChannel::LVL_CV_INPUT));
+        addInput(createInput<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 89.0), module, DaisyChannel::LVL_CV_INPUT));
 
         // Mute
         addParam(createParam<LEDButton>(Vec(RACK_GRID_WIDTH - 9.0, 206.0), module, DaisyChannel::MUTE_PARAM, 0.0f, 1.0f, 0.0f));
         addChild(createLight<MediumLight<RedLight>>(Vec(RACK_GRID_WIDTH - 4.5, 210.25f), module, DaisyChannel::MUTE_LIGHT));
 
         // Chain Input/Output
-        addInput(createPort<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 290.5), PortWidget::INPUT, module, DaisyChannel::CHAIN_INPUT));
-        addOutput(createPort<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 320.0), PortWidget::OUTPUT, module, DaisyChannel::CHAIN_OUTPUT));
+        addInput(createInput<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 290.5), module, DaisyChannel::CHAIN_INPUT));
+        addOutput(createOutput<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 320.0), module, DaisyChannel::CHAIN_OUTPUT));
     }
 };
 
