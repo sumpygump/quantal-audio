@@ -31,7 +31,7 @@ struct DaisyChannel : Module {
 
     DaisyChannel() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {}
 
-    json_t *toJson() override {
+    json_t *dataToJson() override {
         json_t *rootJ = json_object();
 
         // mute
@@ -40,7 +40,7 @@ struct DaisyChannel : Module {
         return rootJ;
     }
 
-    void fromJson(json_t *rootJ) override {
+    void dataFromJson(json_t *rootJ) override {
         // mute
         json_t *mutedJ = json_object_get(rootJ, "muted");
         if (mutedJ)
