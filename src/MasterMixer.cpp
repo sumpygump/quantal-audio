@@ -25,29 +25,29 @@ struct MasterMixer : Module {
     void process(const ProcessArgs &args) override {
         float mix = 0.f;
         for (int i = 0; i < 2; i++) {
-            float ch = inputs[CH_INPUT + i].value;
-            ch *= powf(params[LVL_PARAM + i].value, 2.f);
-            outputs[CH_OUTPUT + i].value = ch;
+            float ch = inputs[CH_INPUT + i].getVoltage();
+            ch *= powf(params[LVL_PARAM + i].getValue(), 2.f);
+            outputs[CH_OUTPUT + i].setVoltage(ch);
             mix += ch;
         }
-        mix *= params[MIX_LVL_PARAM].value;
+        mix *= params[MIX_LVL_PARAM].getValue();
 
-        bool is_mono = (params[MONO_PARAM].value > 0.0f);
+        bool is_mono = (params[MONO_PARAM].getValue() > 0.0f);
 
         float mix_cv = 1.f;
-        if (inputs[MIX_CV_INPUT].active)
-            mix_cv = clamp(inputs[MIX_CV_INPUT].value / 10.f, 0.f, 1.f);
+        if (inputs[MIX_CV_INPUT].isConnected())
+            mix_cv = clamp(inputs[MIX_CV_INPUT].getVoltage() / 10.f, 0.f, 1.f);
 
-        if (!is_mono && (inputs[CH_INPUT + 0].active && inputs[CH_INPUT + 1].active)) {
+        if (!is_mono && (inputs[CH_INPUT + 0].isConnected() && inputs[CH_INPUT + 1].isConnected())) {
             // If the ch 2 jack is active use stereo mode
-            float attenuate = params[MIX_LVL_PARAM].value * mix_cv;
-            outputs[MIX_OUTPUT].value = outputs[CH_OUTPUT + 0].value * attenuate;
-            outputs[MIX_OUTPUT_2].value = outputs[CH_OUTPUT + 1].value * attenuate;
+            float attenuate = params[MIX_LVL_PARAM].getValue() * mix_cv;
+            outputs[MIX_OUTPUT].setVoltage(outputs[CH_OUTPUT + 0].value * attenuate);
+            outputs[MIX_OUTPUT_2].setVoltage(outputs[CH_OUTPUT + 1].value * attenuate);
         } else {
             // Otherwise use mono->stereo mode
             mix *= mix_cv;
-            outputs[MIX_OUTPUT].value = mix;
-            outputs[MIX_OUTPUT_2].value = mix;
+            outputs[MIX_OUTPUT].setVoltage(mix);
+            outputs[MIX_OUTPUT_2].setVoltage(mix);
         }
     }
 };

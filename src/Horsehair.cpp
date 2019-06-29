@@ -99,38 +99,38 @@ struct Horsehair : Module {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);}
 
     void process(const ProcessArgs &args) override {
-        float pitchCv = 12.0f * inputs[PITCH_INPUT].value;
-        oscillator.setPitch(params[OCTAVE_PARAM + 0].value, params[PITCH_PARAM].value, pitchCv);
-        oscillator.setPulseWidth(params[PW_PARAM + 0].value + inputs[PW_CV_INPUT + 0].value / 10.0);
+        float pitchCv = 12.0f * inputs[PITCH_INPUT].getVoltage();
+        oscillator.setPitch(params[OCTAVE_PARAM + 0].getValue(), params[PITCH_PARAM].getValue(), pitchCv);
+        oscillator.setPulseWidth(params[PW_PARAM + 0].getValue() + inputs[PW_CV_INPUT + 0].getVoltage() / 10.0);
         oscillator.process(args.sampleTime);
 
-        oscillator2.setPitch(params[OCTAVE_PARAM + 1].value, params[PITCH_PARAM].value, pitchCv);
-        oscillator2.setPulseWidth(params[PW_PARAM + 1].value + inputs[PW_CV_INPUT + 1].value / 10.0);
+        oscillator2.setPitch(params[OCTAVE_PARAM + 1].getValue(), params[PITCH_PARAM].getValue(), pitchCv);
+        oscillator2.setPulseWidth(params[PW_PARAM + 1].getValue() + inputs[PW_CV_INPUT + 1].getVoltage() / 10.0);
         oscillator2.process(args.sampleTime);
 
-        float shape = clamp(params[SHAPE_PARAM + 0].value, 0.0f, 1.0f);
-        float shape2 = clamp(params[SHAPE_PARAM + 1].value, 0.0f, 1.0f);
+        float shape = clamp(params[SHAPE_PARAM + 0].getValue(), 0.0f, 1.0f);
+        float shape2 = clamp(params[SHAPE_PARAM + 1].getValue(), 0.0f, 1.0f);
 
-        if (inputs[SHAPE_CV_INPUT + 0].active) {
-            shape += inputs[SHAPE_CV_INPUT + 0].value / 10.0;
+        if (inputs[SHAPE_CV_INPUT + 0].isConnected()) {
+            shape += inputs[SHAPE_CV_INPUT + 0].getVoltage() / 10.0;
             shape = clamp(shape, 0.0f, 1.0f);
         }
-        if (inputs[SHAPE_CV_INPUT + 1].active) {
-            shape2 += inputs[SHAPE_CV_INPUT + 1].value / 10.0;
+        if (inputs[SHAPE_CV_INPUT + 1].isConnected()) {
+            shape2 += inputs[SHAPE_CV_INPUT + 1].getVoltage() / 10.0;
             shape2 = clamp(shape2, 0.0f, 1.0f);
         }
 
         float out = 0.0f;
         float out2 = 0.0f;
-        if (outputs[MIX_OUTPUT].active) {
+        if (outputs[MIX_OUTPUT].isConnected()) {
             out = crossfade(oscillator.sqr(), oscillator.saw(), shape);
             out2 = crossfade(oscillator2.sqr(), oscillator2.saw(), shape2);
         }
 
-        float mix = clamp(params[MIX_PARAM].value + inputs[MIX_CV_INPUT].value / 10.0, 0.0f, 1.0f);
+        float mix = clamp(params[MIX_PARAM].getValue() + inputs[MIX_CV_INPUT].getVoltage() / 10.0, 0.0f, 1.0f);
 
-        outputs[MIX_OUTPUT].value = 5.0f * crossfade(out, out2, mix);
-        outputs[SIN_OUTPUT].value = 5.0f * oscillator.sin();
+        outputs[MIX_OUTPUT].setVoltage(5.0f * crossfade(out, out2, mix));
+        outputs[SIN_OUTPUT].setVoltage(5.0f * oscillator.sin());
 
         //lights[OSC_LIGHT].setBrightnessSmooth(fmaxf(0.0f, oscillator.light()));
         //lights[PHASE_NEG_LIGHT].setBrightnessSmooth(fmaxf(0.0f, -oscillator.light()));

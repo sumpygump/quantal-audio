@@ -48,25 +48,25 @@ struct DaisyChannel : Module {
     }
 
     void process(const ProcessArgs &args) override {
-        if (muteTrigger.process(params[MUTE_PARAM].value)) {
+        if (muteTrigger.process(params[MUTE_PARAM].getValue())) {
             muted = !muted;
         }
 
         float ch = 0.f;
         if (!muted) {
-            ch = inputs[CH_INPUT].value;
-            ch *= powf(params[CH_LVL_PARAM].value, 2.f);
+            ch = inputs[CH_INPUT].getVoltage();
+            ch *= powf(params[CH_LVL_PARAM].getValue(), 2.f);
 
-            if (inputs[LVL_CV_INPUT].active) {
-                float _cv = clamp(inputs[LVL_CV_INPUT].value / 10.f, 0.f, 1.f);
+            if (inputs[LVL_CV_INPUT].isConnected()) {
+                float _cv = clamp(inputs[LVL_CV_INPUT].getVoltage() / 10.f, 0.f, 1.f);
                 ch *= _cv;
             }
         }
 
-        outputs[CH_OUTPUT].value = ch;
+        outputs[CH_OUTPUT].setVoltage(ch);
 
         // Make the voltage small to the chain by dividing by the divisor;
-        outputs[CHAIN_OUTPUT].value = inputs[CHAIN_INPUT].value + ch / DAISY_DIVISOR;
+        outputs[CHAIN_OUTPUT].setVoltage(inputs[CHAIN_INPUT].getVoltage() + ch / DAISY_DIVISOR);
         lights[MUTE_LIGHT].value = (muted);
     }
 };

@@ -46,23 +46,23 @@ struct DaisyMaster : Module {
     }
 
     void process(const ProcessArgs &args) override {
-        if (muteTrigger.process(params[MUTE_PARAM].value)) {
+        if (muteTrigger.process(params[MUTE_PARAM].getValue())) {
             muted = !muted;
         }
 
         float mix = 0.f;
         if (!muted) {
             // Bring the voltage back up from the chained low voltage
-            mix = clamp(inputs[CHAIN_INPUT].value * DAISY_DIVISOR, -12.f, 12.f);
-            mix *= params[MIX_LVL_PARAM].value;
+            mix = clamp(inputs[CHAIN_INPUT].getVoltage() * DAISY_DIVISOR, -12.f, 12.f);
+            mix *= params[MIX_LVL_PARAM].getValue();
 
             float mix_cv = 1.f;
-            if (inputs[MIX_CV_INPUT].active)
-                mix_cv = clamp(inputs[MIX_CV_INPUT].value / 10.f, 0.f, 1.f);
+            if (inputs[MIX_CV_INPUT].isConnected())
+                mix_cv = clamp(inputs[MIX_CV_INPUT].getVoltage() / 10.f, 0.f, 1.f);
             mix *= mix_cv;
         }
 
-        outputs[MIX_OUTPUT].value = mix;
+        outputs[MIX_OUTPUT].setVoltage(mix);
         lights[MUTE_LIGHT].value = (muted);
     }
 };

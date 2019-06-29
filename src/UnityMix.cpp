@@ -25,8 +25,8 @@ struct UnityMix : Module {
         float channels = 0.f;
 
         for (int i = in_start; i <= in_end; i++) {
-            if (inputs[CH_INPUT + i].active) {
-                mix += inputs[CH_INPUT + i].value;
+            if (inputs[CH_INPUT + i].isConnected()) {
+                mix += inputs[CH_INPUT + i].getVoltage();
                 channels++;
             }
         }
@@ -37,18 +37,18 @@ struct UnityMix : Module {
     }
 
     void process(const ProcessArgs &args) override {
-        bool unconnect = (params[CONNECT_PARAM].value > 0.0f);
+        bool unconnect = (params[CONNECT_PARAM].getValue() > 0.0f);
 
         if (unconnect) {
             // Group A : Inputs 0 1 2 -> Output 0
-            outputs[CH_OUTPUT + 0].value = mixchannels(0, 2);
+            outputs[CH_OUTPUT + 0].setVoltage(mixchannels(0, 2));
             // Group B : Inputs 3 4 5 -> Output 1
-            outputs[CH_OUTPUT + 1].value = mixchannels(3, 5);
+            outputs[CH_OUTPUT + 1].setVoltage(mixchannels(3, 5));
         } else {
             // Combined : Inputs 0-5 -> Output 1 & 2
             float mix = mixchannels(0, 5);
-            outputs[CH_OUTPUT + 0].value = mix;
-            outputs[CH_OUTPUT + 1].value = mix;
+            outputs[CH_OUTPUT + 0].setVoltage(mix);
+            outputs[CH_OUTPUT + 1].setVoltage(mix);
         }
     }
 };

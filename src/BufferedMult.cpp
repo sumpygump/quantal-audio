@@ -21,22 +21,22 @@ struct BufferedMult : Module {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);}
 
     void process(const ProcessArgs &args) override {
-        bool unconnect = (params[CONNECT_PARAM].value > 0.0f);
+        bool unconnect = (params[CONNECT_PARAM].getValue() > 0.0f);
 
         // Input 0 -> Outputs 0 1 2
-        float ch = inputs[CH_INPUT + 0].value;
+        float ch = inputs[CH_INPUT + 0].getVoltage();
         for (int i = 0; i <= 2; i++) {
-            outputs[CH_OUTPUT + i].value = ch;
+            outputs[CH_OUTPUT + i].setVoltage(ch);
         }
 
         // Input 1 -> Outputs 3 4 5
         // otherwise Outputs 3 4 5 is copy of Input 0
         if (unconnect) {
-            ch = inputs[CH_INPUT + 1].value;
+            ch = inputs[CH_INPUT + 1].getVoltage();
         }
 
         for (int i = 3; i <= 5; i++) {
-            outputs[CH_OUTPUT + i].value = ch;
+            outputs[CH_OUTPUT + i].setVoltage(ch);
         }
     }
 };
