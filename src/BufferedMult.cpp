@@ -20,7 +20,7 @@ struct BufferedMult : Module {
     BufferedMult() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);}
 
-    void step() override {
+    void process(const ProcessArgs &args) override {
         bool unconnect = (params[CONNECT_PARAM].value > 0.0f);
 
         // Input 0 -> Outputs 0 1 2

@@ -98,15 +98,15 @@ struct Horsehair : Module {
     Horsehair() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);}
 
-    void step() override {
+    void process(const ProcessArgs &args) override {
         float pitchCv = 12.0f * inputs[PITCH_INPUT].value;
         oscillator.setPitch(params[OCTAVE_PARAM + 0].value, params[PITCH_PARAM].value, pitchCv);
         oscillator.setPulseWidth(params[PW_PARAM + 0].value + inputs[PW_CV_INPUT + 0].value / 10.0);
-        oscillator.process(engineGetSampleTime());
+        oscillator.process(args.sampleTime);
 
         oscillator2.setPitch(params[OCTAVE_PARAM + 1].value, params[PITCH_PARAM].value, pitchCv);
         oscillator2.setPulseWidth(params[PW_PARAM + 1].value + inputs[PW_CV_INPUT + 1].value / 10.0);
-        oscillator2.process(engineGetSampleTime());
+        oscillator2.process(args.sampleTime);
 
         float shape = clamp(params[SHAPE_PARAM + 0].value, 0.0f, 1.0f);
         float shape2 = clamp(params[SHAPE_PARAM + 1].value, 0.0f, 1.0f);

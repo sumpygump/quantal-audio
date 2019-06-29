@@ -45,7 +45,7 @@ struct DaisyMaster : Module {
             muted = json_is_true(mutedJ);
     }
 
-    void step() override {
+    void process(const ProcessArgs &args) override {
         if (muteTrigger.process(params[MUTE_PARAM].value)) {
             muted = !muted;
         }

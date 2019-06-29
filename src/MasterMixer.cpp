@@ -22,7 +22,7 @@ struct MasterMixer : Module {
     MasterMixer() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS);}
 
-    void step() override {
+    void process(const ProcessArgs &args) override {
         float mix = 0.f;
         for (int i = 0; i < 2; i++) {
             float ch = inputs[CH_INPUT + i].value;

@@ -36,7 +36,7 @@ struct UnityMix : Module {
         return mix;
     }
 
-    void step() override {
+    void process(const ProcessArgs &args) override {
         bool unconnect = (params[CONNECT_PARAM].value > 0.0f);
 
         if (unconnect) {
