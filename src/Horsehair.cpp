@@ -8,9 +8,9 @@ struct VoltageControlledOscillator {
     float pw = 0.5f;
     float pitch;
 
-    Decimator<OVERSAMPLE, QUALITY> sinDecimator;
-    Decimator<OVERSAMPLE, QUALITY> sawDecimator;
-    Decimator<OVERSAMPLE, QUALITY> sqrDecimator;
+    dsp::Decimator<OVERSAMPLE, QUALITY> sinDecimator;
+    dsp::Decimator<OVERSAMPLE, QUALITY> sawDecimator;
+    dsp::Decimator<OVERSAMPLE, QUALITY> sqrDecimator;
 
     float sinBuffer[OVERSAMPLE] = {};
     float sawBuffer[OVERSAMPLE] = {};

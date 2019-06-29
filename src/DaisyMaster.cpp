@@ -24,7 +24,7 @@ struct DaisyMaster : Module {
     // Needs to match the divisor in the daisy channel class
     float DAISY_DIVISOR = 16.f;
     bool muted = false;
-    SchmittTrigger muteTrigger;
+    dsp::SchmittTrigger muteTrigger;
 
     DaisyMaster() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);}
