@@ -44,7 +44,7 @@ struct BufferedMult : Module {
 struct BufferedMultWidget : ModuleWidget {
     BufferedMultWidget(BufferedMult *module) {
         setModule(module);
-        setPanel(APP->window->loadSvg(assetPlugin(pluginInstance, "res/BufferedMult.svg")));
+        setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/BufferedMult.svg")));
 
         // Screws
         addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));

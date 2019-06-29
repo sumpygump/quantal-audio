@@ -70,7 +70,7 @@ struct DaisyMaster : Module {
 struct DaisyMasterWidget : ModuleWidget {
     DaisyMasterWidget(DaisyMaster *module) {
         setModule(module);
-        setPanel(APP->window->loadSvg(assetPlugin(pluginInstance, "res/DaisyMaster.svg")));
+        setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/DaisyMaster.svg")));
 
         // Screws
         addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));

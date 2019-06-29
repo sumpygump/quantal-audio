@@ -56,7 +56,7 @@ struct UnityMix : Module {
 struct UnityMixWidget : ModuleWidget {
     UnityMixWidget(UnityMix *module) {
         setModule(module);
-        setPanel(APP->window->loadSvg(assetPlugin(pluginInstance, "res/UnityMix.svg")));
+        setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/UnityMix.svg")));
 
         // Screws
         addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
