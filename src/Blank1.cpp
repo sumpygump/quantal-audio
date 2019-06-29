@@ -3,7 +3,7 @@
 
 struct Blank1Widget : ModuleWidget {
 	Blank1Widget(Module *module) : ModuleWidget(module) {
-		setPanel(SVG::load(assetPlugin(plugin, "res/blank-1.svg")));
+		setPanel(SVG::load(assetPlugin(pluginInstance, "res/blank-1.svg")));
 	}
 };
 

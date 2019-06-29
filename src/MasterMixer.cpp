@@ -53,7 +53,7 @@ struct MasterMixer : Module {
 
 struct MasterMixerWidget : ModuleWidget {
     MasterMixerWidget(MasterMixer *module) : ModuleWidget(module) {
-        setPanel(SVG::load(assetPlugin(plugin, "res/MasterMixer.svg")));
+        setPanel(SVG::load(assetPlugin(pluginInstance, "res/MasterMixer.svg")));
 
         // Screws
         addChild(Widget::create<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));

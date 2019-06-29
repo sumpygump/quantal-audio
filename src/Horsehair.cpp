@@ -140,7 +140,7 @@ struct Horsehair : Module {
 
 struct HorsehairWidget : ModuleWidget {
     HorsehairWidget(Horsehair *module) : ModuleWidget(module) {
-        setPanel(SVG::load(assetPlugin(plugin, "res/Horsehair.svg")));
+        setPanel(SVG::load(assetPlugin(pluginInstance, "res/Horsehair.svg")));
 
         // Screws
         addChild(Widget::create<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
