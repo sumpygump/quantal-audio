@@ -28,8 +28,12 @@ struct DaisyMaster : Module {
 
     DaisyMaster() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-        configParam(MIX_LVL_PARAM, 0.0f, 2.0f, 1.0f);
-        configParam(MUTE_PARAM, 0.0f, 1.0f, 0.0f);
+        configParam(MIX_LVL_PARAM, 0.0f, 2.0f, 1.0f, "Mix level", " dB", -10, 20);
+        configButton(MUTE_PARAM, "Mute");
+
+        configInput(MIX_CV_INPUT, "Level CV");
+        configInput(CHAIN_INPUT, "Daisy Channel");
+        configOutput(MIX_OUTPUT, "Mix");
     }
 
     json_t *dataToJson() override {
@@ -53,19 +57,33 @@ struct DaisyMaster : Module {
             muted = !muted;
         }
 
-        float mix = 0.f;
+        float mix[16] = {};
+        int channels = 1;
+
         if (!muted) {
+            float gain = params[MIX_LVL_PARAM].getValue();
+
+            channels = inputs[CHAIN_INPUT].getChannels();
+
             // Bring the voltage back up from the chained low voltage
-            mix = clamp(inputs[CHAIN_INPUT].getVoltage() * DAISY_DIVISOR, -12.f, 12.f);
-            mix *= params[MIX_LVL_PARAM].getValue();
+            inputs[CHAIN_INPUT].readVoltages(mix);
+            for (int c = 0; c < channels; c++) {
+                mix[c] = clamp(mix[c] * DAISY_DIVISOR, -12.f, 12.f) * gain;
+            }
+
+            // mix = clamp(inputs[CHAIN_INPUT].getVoltage() * DAISY_DIVISOR, -12.f, 12.f);
 
             float mix_cv = 1.f;
-            if (inputs[MIX_CV_INPUT].isConnected())
+            if (inputs[MIX_CV_INPUT].isConnected()) {
                 mix_cv = clamp(inputs[MIX_CV_INPUT].getVoltage() / 10.f, 0.f, 1.f);
-            mix *= mix_cv;
+                for (int c = 0; c < channels; c++) {
+                    mix[c] *= mix_cv;
+                }
+            }
         }
 
-        outputs[MIX_OUTPUT].setVoltage(mix);
+        outputs[MIX_OUTPUT].setChannels(channels);
+        outputs[MIX_OUTPUT].writeVoltages(mix);
         lights[MUTE_LIGHT].value = (muted);
     }
 };

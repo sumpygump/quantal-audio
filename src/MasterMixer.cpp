@@ -21,38 +21,88 @@ struct MasterMixer : Module {
 
     MasterMixer() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS);
-        configParam(MIX_LVL_PARAM, 0.0f, 2.0f, 1.0f);
-        configParam(MONO_PARAM, 0.0f, 1.0f, 1.0f);
-        configParam(LVL_PARAM + 0, 0.0f, 1.0f, 1.0f);
-        configParam(LVL_PARAM + 1, 0.0f, 1.0f, 1.0f);
+        configParam(MIX_LVL_PARAM, 0.0f, 2.0f, 1.0f, "Mix level", " dB", -10, 20);
+        configSwitch(MONO_PARAM, 0.0f, 1.0f, 1.0f, "Mode", {"Stereo", "Mono"});
+        configParam(LVL_PARAM + 0, 0.0f, M_SQRT2, 1.0f, "Channel 1 level", " dB", -10, 40);
+        configParam(LVL_PARAM + 1, 0.0f, M_SQRT2, 1.0f, "Channel 2 level", " dB", -10, 40);
+
+        configInput(MIX_CV_INPUT, "Mix CV");
+        configInput(CH_INPUT + 0, "Channel 1");
+        configInput(CH_INPUT + 1, "Channel 2");
+
+        configOutput(CH_OUTPUT + 0, "Channel 1");
+        configOutput(CH_OUTPUT + 1, "Channel 2");
+        configOutput(MIX_OUTPUT, "Mix 1");
+        configOutput(MIX_OUTPUT_2, "Mix 2");
     }
 
     void process(const ProcessArgs &args) override {
-        float mix = 0.f;
-        for (int i = 0; i < 2; i++) {
-            float ch = inputs[CH_INPUT + i].getVoltage();
-            ch *= powf(params[LVL_PARAM + i].getValue(), 2.f);
-            outputs[CH_OUTPUT + i].setVoltage(ch);
-            mix += ch;
-        }
-        mix *= params[MIX_LVL_PARAM].getValue();
-
+        float mix[16] = {};
+        float mix_cv[16] = {};
+        float mix_out[2][16] = {{},{}};
+        int maxChannels = 1;
         bool is_mono = (params[MONO_PARAM].getValue() > 0.0f);
+        float master_gain = params[MIX_LVL_PARAM].getValue();
 
-        float mix_cv = 1.f;
-        if (inputs[MIX_CV_INPUT].isConnected())
-            mix_cv = clamp(inputs[MIX_CV_INPUT].getVoltage() / 10.f, 0.f, 1.f);
+        for (int i = 0; i < 2; i++) {
+            int channels = 1;
+            float ch[16] = {};
+
+            if (inputs[CH_INPUT + i].isConnected()) {
+                channels = inputs[CH_INPUT + i].getChannels();
+                maxChannels = std::max(maxChannels, channels);
+
+                inputs[CH_INPUT + i].readVoltages(ch);
+
+                float gain = std::pow(params[LVL_PARAM + i].getValue(), 2.f);
+                for (int c = 0; c < channels; c++) {
+                    ch[c] *= gain;
+                }
+
+                for (int c = 0; c < channels; c++) {
+                    mix[c] += ch[c];
+                    mix_out[i][c] += ch[c];
+                }
+            }
+
+            if (outputs[CH_OUTPUT + i].isConnected()) {
+                outputs[CH_OUTPUT + i].setChannels(channels);
+                outputs[CH_OUTPUT + i].writeVoltages(ch);
+            }
+        }
+
+        // Gather poly values from CV input
+        if (inputs[MIX_CV_INPUT].isConnected()) {
+            for (int c = 0; c < maxChannels; c++) {
+                mix_cv[c] = clamp(inputs[MIX_CV_INPUT].getPolyVoltage(c) / 10.f, 0.f, 1.f);
+            }
+        } else {
+            for (int c = 0; c < maxChannels; c++) {
+                mix_cv[c] = 1.f;
+            }
+        }
 
         if (!is_mono && (inputs[CH_INPUT + 0].isConnected() && inputs[CH_INPUT + 1].isConnected())) {
             // If the ch 2 jack is active use stereo mode
-            float attenuate = params[MIX_LVL_PARAM].getValue() * mix_cv;
-            outputs[MIX_OUTPUT].setVoltage(outputs[CH_OUTPUT + 0].value * attenuate);
-            outputs[MIX_OUTPUT_2].setVoltage(outputs[CH_OUTPUT + 1].value * attenuate);
+            for (int c = 0; c < maxChannels; c++) {
+                float attenuate = master_gain * mix_cv[c];
+                mix_out[0][c] *= attenuate;
+                mix_out[1][c] *= attenuate;
+            }
+            outputs[MIX_OUTPUT].setChannels(maxChannels);
+            outputs[MIX_OUTPUT].writeVoltages(mix_out[0]);
+            outputs[MIX_OUTPUT_2].setChannels(maxChannels);
+            outputs[MIX_OUTPUT_2].writeVoltages(mix_out[1]);
         } else {
             // Otherwise use mono->stereo mode
-            mix *= mix_cv;
-            outputs[MIX_OUTPUT].setVoltage(mix);
-            outputs[MIX_OUTPUT_2].setVoltage(mix);
+            for (int c = 0; c < maxChannels; c++) {
+                float attenuate = master_gain * mix_cv[c];
+                mix[c] *= attenuate;
+            }
+            outputs[MIX_OUTPUT].setChannels(maxChannels);
+            outputs[MIX_OUTPUT].writeVoltages(mix);
+            outputs[MIX_OUTPUT_2].setChannels(maxChannels);
+            outputs[MIX_OUTPUT_2].writeVoltages(mix);
         }
     }
 };
@@ -75,7 +125,7 @@ struct MasterMixerWidget : ModuleWidget {
         // Mono/stereo switch
         addParam(createParam<CKSS>(Vec(RACK_GRID_WIDTH * 2.5 - 7.0, 162.0), module, MasterMixer::MONO_PARAM));
 
-        // LEDs
+        // LED faders
         addParam(createParam<LEDSliderGreen>(Vec(RACK_GRID_WIDTH * 2.5 - (21.0 + 7.0), 130.4), module, MasterMixer::LVL_PARAM + 0));
         addParam(createParam<LEDSliderGreen>(Vec(RACK_GRID_WIDTH * 2.5 + 7.0, 130.4), module, MasterMixer::LVL_PARAM + 1));
 

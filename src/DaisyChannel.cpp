@@ -30,8 +30,15 @@ struct DaisyChannel : Module {
 
     DaisyChannel() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-        configParam(CH_LVL_PARAM, 0.0f, 1.0f, 1.0f);
-        configParam(MUTE_PARAM, 0.0f, 1.0f, 0.0f);
+        configParam(CH_LVL_PARAM, 0.0f, 1.0f, 1.0f, "Channel level", " dB", -10, 20);
+        configButton(MUTE_PARAM, "Mute");
+
+        configInput(CH_INPUT, "Channel");
+        configInput(LVL_CV_INPUT, "Level CV");
+        configInput(CHAIN_INPUT, "Daisy chain");
+
+        configOutput(CH_OUTPUT, "Channel");
+        configOutput(CHAIN_OUTPUT, "Daisy chain");
     }
 
     json_t *dataToJson() override {
@@ -55,21 +62,42 @@ struct DaisyChannel : Module {
             muted = !muted;
         }
 
-        float ch = 0.f;
+        float signals[16] = {};
+        int channels = 1;
         if (!muted) {
-            ch = inputs[CH_INPUT].getVoltage();
-            ch *= powf(params[CH_LVL_PARAM].getValue(), 2.f);
+            //ch = inputs[CH_INPUT].getVoltage();
+            channels = inputs[CH_INPUT].getChannels();
+            inputs[CH_INPUT].readVoltages(signals);
+            float gain = params[CH_LVL_PARAM].getValue();
+            for (int c = 0; c < channels; c++) {
+                signals[c] *= std::pow(gain, 2.f);
+            }
+            //ch *= powf(params[CH_LVL_PARAM].getValue(), 2.f);
 
             if (inputs[LVL_CV_INPUT].isConnected()) {
                 float _cv = clamp(inputs[LVL_CV_INPUT].getVoltage() / 10.f, 0.f, 1.f);
-                ch *= _cv;
+                for (int c = 0; c < channels; c++) {
+                    signals[c] *= _cv;
+                }
             }
         }
 
-        outputs[CH_OUTPUT].setVoltage(ch);
+        outputs[CH_OUTPUT].setChannels(channels);
+        outputs[CH_OUTPUT].writeVoltages(signals);
+
+        float daisySignals[16] = {};
+        int maxChannels = std::max(inputs[CHAIN_INPUT].getChannels(), channels);
 
         // Make the voltage small to the chain by dividing by the divisor;
-        outputs[CHAIN_OUTPUT].setVoltage(inputs[CHAIN_INPUT].getVoltage() + ch / DAISY_DIVISOR);
+        inputs[CHAIN_INPUT].readVoltages(daisySignals);
+        for (int c = 0; c < maxChannels; c++) {
+            daisySignals[c] += signals[c] / DAISY_DIVISOR;
+        }
+
+        outputs[CHAIN_OUTPUT].setChannels(maxChannels);
+        outputs[CHAIN_OUTPUT].writeVoltages(daisySignals);
+
+        //outputs[CHAIN_OUTPUT].setVoltage(inputs[CHAIN_INPUT].getVoltage() + ch / DAISY_DIVISOR);
         lights[MUTE_LIGHT].value = (muted);
     }
 };

@@ -19,26 +19,41 @@ struct BufferedMult : Module {
 
     BufferedMult() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-        configParam(CONNECT_PARAM, 0.0f, 1.0f, 1.0f);
+        configSwitch(CONNECT_PARAM, 0.0f, 1.0f, 1.0f, "connect mode", {"Group All (2:6)", "Groups A, B (1:3 x 2)"});
+
+        configInput(CH_INPUT + 0, "A");
+        configInput(CH_INPUT + 1, "B");
+
+        configOutput(CH_OUTPUT + 0, "A1");
+        configOutput(CH_OUTPUT + 1, "A2");
+        configOutput(CH_OUTPUT + 2, "A3");
+        configOutput(CH_OUTPUT + 3, "B1");
+        configOutput(CH_OUTPUT + 4, "B2");
+        configOutput(CH_OUTPUT + 5, "B3");
     }
 
     void process(const ProcessArgs &args) override {
         bool unconnect = (params[CONNECT_PARAM].getValue() > 0.0f);
 
         // Input 0 -> Outputs 0 1 2
-        float ch = inputs[CH_INPUT + 0].getVoltage();
+        float signals[16] = {};
+        inputs[CH_INPUT + 0].readVoltages(signals);
+        int channels = inputs[CH_INPUT + 0].getChannels();
         for (int i = 0; i <= 2; i++) {
-            outputs[CH_OUTPUT + i].setVoltage(ch);
+            outputs[CH_OUTPUT + i].setChannels(channels);
+            outputs[CH_OUTPUT + i].writeVoltages(signals);
         }
 
         // Input 1 -> Outputs 3 4 5
         // otherwise Outputs 3 4 5 is copy of Input 0
         if (unconnect) {
-            ch = inputs[CH_INPUT + 1].getVoltage();
+            inputs[CH_INPUT + 1].readVoltages(signals);
+            channels = inputs[CH_INPUT + 1].getChannels();
         }
 
         for (int i = 3; i <= 5; i++) {
-            outputs[CH_OUTPUT + i].setVoltage(ch);
+            outputs[CH_OUTPUT + i].setChannels(channels);
+            outputs[CH_OUTPUT + i].writeVoltages(signals);
         }
     }
 };
