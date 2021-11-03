@@ -55,8 +55,7 @@ struct VoltageControlledOscillator {
         if (soft) {
             // Reverse direction
             deltaPhase *= syncDirection;
-        }
-        else {
+        } else {
             // Reset back to forward
             syncDirection = 1.f;
         }
@@ -118,8 +117,7 @@ struct VoltageControlledOscillator {
             if (syncMask) {
                 if (soft) {
                     syncDirection = simd::ifelse(sync, -syncDirection, syncDirection);
-                }
-                else {
+                } else {
                     T newPhase = simd::ifelse(sync, (1.f - syncCrossing) * deltaPhase, phase);
                     // Insert minBLEP for sync
                     for (int i = 0; i < channels; i++) {
@@ -173,8 +171,7 @@ struct VoltageControlledOscillator {
             T x = phase - simd::ifelse(halfPhase, 0.25f, 0.75f);
             v = 1.f - 16.f * simd::pow(x, 2);
             v *= simd::ifelse(halfPhase, 1.f, -1.f);
-        }
-        else {
+        } else {
             v = sin2pi_pade_05_5_4(phase);
             // v = sin2pi_pade_05_7_6(phase);
             // v = simd::sin(2 * T(M_PI) * phase);
@@ -194,8 +191,7 @@ struct VoltageControlledOscillator {
             x *= 2;
             x -= simd::trunc(x);
             v = expCurve(x) * simd::ifelse(halfX, 1.f, -1.f);
-        }
-        else {
+        } else {
             v = 1 - 4 * simd::fmin(simd::fabs(phase - 0.25f), simd::fabs(phase - 1.25f));
         }
         return v;
@@ -210,8 +206,7 @@ struct VoltageControlledOscillator {
         x -= simd::trunc(x);
         if (analog) {
             v = -expCurve(x);
-        }
-        else {
+        } else {
             v = 2 * x - 1;
         }
         return v;
@@ -299,7 +294,7 @@ struct Horsehair : Module {
         float_4 out2 = 0.0f;
 
         for (int c = 0; c < channels; c += 4) {
-            auto* oscillator = &oscillators[c / 4];
+            auto *oscillator = &oscillators[c / 4];
             oscillator->channels = std::min(channels - c, 4);
             float_4 pitch = 1.0 + roundf(octave) + pitch_fine;
             pitch += inputs[PITCH_INPUT].getVoltageSimd<float_4>(c);
@@ -307,7 +302,7 @@ struct Horsehair : Module {
             oscillator->setPulseWidth(pw + inputs[PW_CV_INPUT + 0].getPolyVoltageSimd<float_4>(c) / 10.f);
             oscillator->process(args.sampleTime, 0.0);
 
-            auto* oscillator2 = &oscillators2[c / 4];
+            auto *oscillator2 = &oscillators2[c / 4];
             oscillator2->channels = std::min(channels - c, 4);
             float_4 pitch2 = 1.0 + roundf(octave2) + pitch_fine;
             pitch2 += inputs[PITCH_INPUT].getVoltageSimd<float_4>(c);
@@ -363,7 +358,7 @@ struct HorsehairWidget : ModuleWidget {
         addInput(createInput<PJ301MPort>(Vec(RACK_GRID_WIDTH * 4 + 16.5, 245.0), module, Horsehair::PW_CV_INPUT + 1));
 
         // Osc Mix
-        addParam(createParam<RoundLargeBlackKnob>(Vec(RACK_GRID_WIDTH * 3.5 - (38.0/2), 264.0), module, Horsehair::MIX_PARAM));
+        addParam(createParam<RoundLargeBlackKnob>(Vec(RACK_GRID_WIDTH * 3.5 - (38.0 / 2), 264.0), module, Horsehair::MIX_PARAM));
         addInput(createInput<PJ301MPort>(Vec(RACK_GRID_WIDTH - 8, 277.0), module, Horsehair::MIX_CV_INPUT));
 
         // Output

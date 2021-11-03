@@ -39,7 +39,7 @@ struct MasterMixer : Module {
     void process(const ProcessArgs &args) override {
         float mix[16] = {};
         float mix_cv[16] = {};
-        float mix_out[2][16] = {{},{}};
+        float mix_out[2][16] = {{}, {}};
         int maxChannels = 1;
         bool is_mono = (params[MONO_PARAM].getValue() > 0.0f);
         float master_gain = params[MIX_LVL_PARAM].getValue();
@@ -119,8 +119,8 @@ struct MasterMixerWidget : ModuleWidget {
         addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
         // Level & CV
-        addParam(createParam<RoundLargeBlackKnob>(Vec(RACK_GRID_WIDTH * 2.5 - (38.0/2), 52.0), module, MasterMixer::MIX_LVL_PARAM));
-        addInput(createInput<PJ301MPort>(Vec(RACK_GRID_WIDTH * 2.5 - (25.0/2), 96.0), module, MasterMixer::MIX_CV_INPUT));
+        addParam(createParam<RoundLargeBlackKnob>(Vec(RACK_GRID_WIDTH * 2.5 - (38.0 / 2), 52.0), module, MasterMixer::MIX_LVL_PARAM));
+        addInput(createInput<PJ301MPort>(Vec(RACK_GRID_WIDTH * 2.5 - (25.0 / 2), 96.0), module, MasterMixer::MIX_CV_INPUT));
 
         // Mono/stereo switch
         addParam(createParam<CKSS>(Vec(RACK_GRID_WIDTH * 2.5 - 7.0, 162.0), module, MasterMixer::MONO_PARAM));

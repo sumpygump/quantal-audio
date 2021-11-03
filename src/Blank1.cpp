@@ -2,10 +2,10 @@
 
 
 struct Blank1Widget : ModuleWidget {
-	Blank1Widget(Module *module) {
-		setModule(module);
-		setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/blank-1.svg")));
-	}
+    Blank1Widget(Module *module) {
+        setModule(module);
+        setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/blank-1.svg")));
+    }
 };
 
 

@@ -22,3 +22,6 @@ include $(RACK_DIR)/plugin.mk
 
 images:
 	$(MAKE) -C res
+
+lint:
+	astyle --suffix=none --options=.astylerc -r 'src/*'
