@@ -16,7 +16,7 @@ T expCurve(T x) {
 
 template <int OVERSAMPLE, int QUALITY, typename T>
 struct VoltageControlledOscillator {
-    bool analog = false;
+    bool analog = true;
     bool soft = false;
     bool syncEnabled = false;
     // For optimizing in serial code
@@ -32,12 +32,10 @@ struct VoltageControlledOscillator {
 
     dsp::MinBlepGenerator<QUALITY, OVERSAMPLE, T> sqrMinBlep;
     dsp::MinBlepGenerator<QUALITY, OVERSAMPLE, T> sawMinBlep;
-    dsp::MinBlepGenerator<QUALITY, OVERSAMPLE, T> triMinBlep;
     dsp::MinBlepGenerator<QUALITY, OVERSAMPLE, T> sinMinBlep;
 
     T sqrValue = 0.f;
     T sawValue = 0.f;
-    T triValue = 0.f;
     T sinValue = 0.f;
 
     void setPitch(T pitch) {
@@ -106,40 +104,6 @@ struct VoltageControlledOscillator {
             }
         }
 
-        // Detect sync
-        // Might be NAN or outside of [0, 1) range
-        if (syncEnabled) {
-            T deltaSync = syncValue - lastSyncValue;
-            T syncCrossing = -lastSyncValue / deltaSync;
-            lastSyncValue = syncValue;
-            T sync = (0.f < syncCrossing) & (syncCrossing <= 1.f) & (syncValue >= 0.f);
-            int syncMask = simd::movemask(sync);
-            if (syncMask) {
-                if (soft) {
-                    syncDirection = simd::ifelse(sync, -syncDirection, syncDirection);
-                } else {
-                    T newPhase = simd::ifelse(sync, (1.f - syncCrossing) * deltaPhase, phase);
-                    // Insert minBLEP for sync
-                    for (int i = 0; i < channels; i++) {
-                        if (syncMask & (1 << i)) {
-                            T mask = simd::movemaskInverse<T>(1 << i);
-                            float p = syncCrossing[i] - 1.f;
-                            T x;
-                            x = mask & (sqr(newPhase) - sqr(phase));
-                            sqrMinBlep.insertDiscontinuity(p, x);
-                            x = mask & (saw(newPhase) - saw(phase));
-                            sawMinBlep.insertDiscontinuity(p, x);
-                            x = mask & (tri(newPhase) - tri(phase));
-                            triMinBlep.insertDiscontinuity(p, x);
-                            x = mask & (sin(newPhase) - sin(phase));
-                            sinMinBlep.insertDiscontinuity(p, x);
-                        }
-                    }
-                    phase = newPhase;
-                }
-            }
-        }
-
         // Square
         sqrValue = sqr(phase);
         sqrValue += sqrMinBlep.process();
@@ -153,10 +117,6 @@ struct VoltageControlledOscillator {
         // Saw
         sawValue = saw(phase);
         sawValue += sawMinBlep.process();
-
-        // Tri
-        triValue = tri(phase);
-        triValue += triMinBlep.process();
 
         // Sin
         sinValue = sin(phase);
@@ -173,31 +133,11 @@ struct VoltageControlledOscillator {
             v *= simd::ifelse(halfPhase, 1.f, -1.f);
         } else {
             v = sin2pi_pade_05_5_4(phase);
-            // v = sin2pi_pade_05_7_6(phase);
-            // v = simd::sin(2 * T(M_PI) * phase);
         }
         return v;
     }
     T sin() {
         return sinValue;
-    }
-
-    T tri(T phase) {
-        T v;
-        if (analog) {
-            T x = phase + 0.25f;
-            x -= simd::trunc(x);
-            T halfX = (x >= 0.5f);
-            x *= 2;
-            x -= simd::trunc(x);
-            v = expCurve(x) * simd::ifelse(halfX, 1.f, -1.f);
-        } else {
-            v = 1 - 4 * simd::fmin(simd::fabs(phase - 0.25f), simd::fabs(phase - 1.25f));
-        }
-        return v;
-    }
-    T tri() {
-        return triValue;
     }
 
     T saw(T phase) {
@@ -221,10 +161,6 @@ struct VoltageControlledOscillator {
     }
     T sqr() {
         return sqrValue;
-    }
-
-    T light() {
-        return simd::sin(2 * T(M_PI) * phase);
     }
 };
 
@@ -259,14 +195,23 @@ struct Horsehair : Module {
 
     Horsehair() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-        configParam(PITCH_PARAM, -2.0f, 2.0f, 0.0f);
-        configParam(OCTAVE_PARAM + 0, -5.0f, 4.0f, -2.0f);
-        configParam(OCTAVE_PARAM + 1, -5.0f, 4.0f, -1.0f);
-        configParam(SHAPE_PARAM + 0, 0.0f, 1.0f, 0.0f);
-        configParam(SHAPE_PARAM + 1, 0.0f, 1.0f, 1.0f);
-        configParam(PW_PARAM + 0, 0.0f, 1.0f, 0.5f);
-        configParam(PW_PARAM + 1, 0.0f, 1.0f, 0.5f);
-        configParam(MIX_PARAM, 0.0f, 1.0f, 0.5f);
+        configParam(PITCH_PARAM, -2.0f, 2.0f, 0.0f, "Pitch Tune");
+        configParam(OCTAVE_PARAM + 0, -5.0f, 4.0f, -2.0f, "Osc A Octave", "");
+        configParam(OCTAVE_PARAM + 1, -5.0f, 4.0f, -1.0f, "Osc B Octave", "");
+        configParam(SHAPE_PARAM + 0, 0.0f, 1.0f, 0.0f, "Osc A Shape");
+        configParam(SHAPE_PARAM + 1, 0.0f, 1.0f, 1.0f, "Osc B Shape");
+        configParam(PW_PARAM + 0, 0.0f, 1.0f, 0.5f, "Osc A PW");
+        configParam(PW_PARAM + 1, 0.0f, 1.0f, 0.5f, "Osc B PW");
+        configParam(MIX_PARAM, 0.0f, 1.0f, 0.5f, "Mix level", "%", 0, 100);
+
+        configInput(PITCH_INPUT, "Pitch");
+        configInput(SHAPE_CV_INPUT + 0, "Osc A Shape CV");
+        configInput(SHAPE_CV_INPUT + 1, "Osc B Shape CV");
+        configInput(PW_CV_INPUT + 0, "Osc A PW CV");
+        configInput(PW_CV_INPUT + 1, "Osc B PW CV");
+        configInput(MIX_CV_INPUT, "Mix CV");
+        configOutput(SIN_OUTPUT, "Sine");
+        configOutput(MIX_OUTPUT, "Osc Mix");
     }
 
     void process(const ProcessArgs &args) override {
