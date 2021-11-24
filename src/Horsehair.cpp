@@ -16,17 +16,16 @@ T expCurve(T x) {
 
 template <int OVERSAMPLE, int QUALITY, typename T>
 struct VoltageControlledOscillator {
-    bool analog = true;
-    bool soft = false;
-    bool syncEnabled = false;
+    bool analog {true};
+    bool soft {false};
     // For optimizing in serial code
-    int channels = 0;
+    int channels {0};
 
-    T lastSyncValue = 0.f;
-    T phase = 0.f;
-    T freq;
-    T pulseWidth = 0.5f;
-    T syncDirection = 1.f;
+    T lastSyncValue {0.0};
+    T phase {0.0};
+    T freq {};
+    T pulseWidth {0.5};
+    T syncDirection {1.0};
 
     dsp::TRCFilter<T> sqrFilter;
 
@@ -34,43 +33,43 @@ struct VoltageControlledOscillator {
     dsp::MinBlepGenerator<QUALITY, OVERSAMPLE, T> sawMinBlep;
     dsp::MinBlepGenerator<QUALITY, OVERSAMPLE, T> sinMinBlep;
 
-    T sqrValue = 0.f;
-    T sawValue = 0.f;
-    T sinValue = 0.f;
+    T sqrValue {0.0};
+    T sawValue {0.0};
+    T sinValue {0.0};
 
     void setPitch(T pitch) {
-        freq = dsp::FREQ_C4 * dsp::approxExp2_taylor5(pitch + 30.f) / std::pow(2.f, 30.f);
+        freq = dsp::FREQ_C4 * dsp::approxExp2_taylor5(pitch);
     }
 
     void setPulseWidth(T pulseWidth) {
-        const float pwMin = 0.01f;
+        const float pwMin {0.01};
         this->pulseWidth = simd::clamp(pulseWidth, pwMin, 1.f - pwMin);
     }
 
     void process(float deltaTime, T syncValue) {
         // Advance phase
-        T deltaPhase = simd::clamp(freq * deltaTime, 1e-6f, 0.35f);
+        T deltaPhase {simd::clamp(freq * deltaTime, 1e-6f, 0.35f)};
         if (soft) {
             // Reverse direction
             deltaPhase *= syncDirection;
         } else {
             // Reset back to forward
-            syncDirection = 1.f;
+            syncDirection = 1.0;
         }
         phase += deltaPhase;
         // Wrap phase
         phase -= simd::floor(phase);
 
         // Jump sqr when crossing 0, or 1 if backwards
-        T wrapPhase = (syncDirection == -1.f) & 1.f;
-        T wrapCrossing = (wrapPhase - (phase - deltaPhase)) / deltaPhase;
-        int wrapMask = simd::movemask((0 < wrapCrossing) & (wrapCrossing <= 1.f));
+        T wrapPhase {(syncDirection == -1.f) & 1.f};
+        T wrapCrossing {(wrapPhase - (phase - deltaPhase)) / deltaPhase};
+        int wrapMask {simd::movemask((0 < wrapCrossing) & (wrapCrossing <= 1.f))};
         if (wrapMask) {
             for (int i = 0; i < channels; i++) {
                 if (wrapMask & (1 << i)) {
-                    T mask = simd::movemaskInverse<T>(1 << i);
-                    float p = wrapCrossing[i] - 1.f;
-                    T x = mask & (2.f * syncDirection);
+                    T mask {simd::movemaskInverse<T>(1 << i)};
+                    float p {wrapCrossing[i] - 1.f};
+                    T x {mask &(2.f * syncDirection)};
                     sqrMinBlep.insertDiscontinuity(p, x);
                 }
             }
@@ -84,7 +83,7 @@ struct VoltageControlledOscillator {
                 if (pulseMask & (1 << i)) {
                     T mask = simd::movemaskInverse<T>(1 << i);
                     float p = pulseCrossing[i] - 1.f;
-                    T x = mask & (-2.f * syncDirection);
+                    T x {mask &(-2.f * syncDirection)};
                     sqrMinBlep.insertDiscontinuity(p, x);
                 }
             }
@@ -98,7 +97,7 @@ struct VoltageControlledOscillator {
                 if (halfMask & (1 << i)) {
                     T mask = simd::movemaskInverse<T>(1 << i);
                     float p = halfCrossing[i] - 1.f;
-                    T x = mask & (-2.f * syncDirection);
+                    T x {mask &(-2.f * syncDirection)};
                     sawMinBlep.insertDiscontinuity(p, x);
                 }
             }
@@ -127,8 +126,8 @@ struct VoltageControlledOscillator {
         T v;
         if (analog) {
             // Quadratic approximation of sine, slightly richer harmonics
-            T halfPhase = (phase < 0.5f);
-            T x = phase - simd::ifelse(halfPhase, 0.25f, 0.75f);
+            T halfPhase = {(phase < 0.5f)};
+            T x {phase - simd::ifelse(halfPhase, 0.25f, 0.75f)};
             v = 1.f - 16.f * simd::pow(x, 2);
             v *= simd::ifelse(halfPhase, 1.f, -1.f);
         } else {
@@ -141,8 +140,8 @@ struct VoltageControlledOscillator {
     }
 
     T saw(T phase) {
-        T v;
-        T x = phase + 0.5f;
+        T v {};
+        T x {phase + 0.5f};
         x -= simd::trunc(x);
         if (analog) {
             v = -expCurve(x);
@@ -156,7 +155,7 @@ struct VoltageControlledOscillator {
     }
 
     T sqr(T phase) {
-        T v = simd::ifelse(phase < pulseWidth, 1.f, -1.f);
+        T v {simd::ifelse(phase < pulseWidth, 1.f, -1.f)};
         return v;
     }
     T sqr() {
@@ -215,13 +214,13 @@ struct Horsehair : Module {
     }
 
     void process(const ProcessArgs &args) override {
-        int channels = std::max(inputs[PITCH_INPUT].getChannels(), 1);
+        int channels {std::max(inputs[PITCH_INPUT].getChannels(), 1)};
 
-        float octave = params[OCTAVE_PARAM + 0].getValue();
-        float octave2 = params[OCTAVE_PARAM + 1].getValue();
-        float pitch_fine = params[PITCH_PARAM].getValue() / 4.0;
-        float pw = params[PW_PARAM + 0].getValue();
-        float pw2 = params[PW_PARAM + 1].getValue();
+        float octave {params[OCTAVE_PARAM + 0].getValue()};
+        float octave2 {params[OCTAVE_PARAM + 1].getValue()};
+        float pitch_fine {params[PITCH_PARAM].getValue() / 4.f};
+        float pw {params[PW_PARAM + 0].getValue()};
+        float pw2 {params[PW_PARAM + 1].getValue()};
 
         float shape = clamp(params[SHAPE_PARAM + 0].getValue(), 0.0f, 1.0f);
         if (inputs[SHAPE_CV_INPUT + 0].isConnected()) {
@@ -235,30 +234,32 @@ struct Horsehair : Module {
             shape2 = clamp(shape2, 0.0f, 1.0f);
         }
 
-        float_4 out = 0.0f;
-        float_4 out2 = 0.0f;
+        float_4 out {0.0f};
+        float_4 out2 {0.0f};
 
         for (int c = 0; c < channels; c += 4) {
+            float_4 pitch_in {inputs[PITCH_INPUT].getVoltageSimd<float_4>(c)};
+            float_4 pw_in {inputs[PW_CV_INPUT + 0].getPolyVoltageSimd<float_4>(c)};
+            float_4 pw_in2 {inputs[PW_CV_INPUT + 1].getPolyVoltageSimd<float_4>(c)};
+
             auto *oscillator = &oscillators[c / 4];
             oscillator->channels = std::min(channels - c, 4);
-            float_4 pitch = 1.0 + roundf(octave) + pitch_fine;
-            pitch += inputs[PITCH_INPUT].getVoltageSimd<float_4>(c);
+            float_4 pitch {1.f + roundf(octave) + pitch_fine + pitch_in};
             oscillator->setPitch(pitch);
-            oscillator->setPulseWidth(pw + inputs[PW_CV_INPUT + 0].getPolyVoltageSimd<float_4>(c) / 10.f);
+            oscillator->setPulseWidth(pw + pw_in / 10.f);
             oscillator->process(args.sampleTime, 0.0);
 
             auto *oscillator2 = &oscillators2[c / 4];
             oscillator2->channels = std::min(channels - c, 4);
-            float_4 pitch2 = 1.0 + roundf(octave2) + pitch_fine;
-            pitch2 += inputs[PITCH_INPUT].getVoltageSimd<float_4>(c);
+            float_4 pitch2 {1.f + roundf(octave2) + pitch_fine + pitch_in};
             oscillator2->setPitch(pitch2);
-            oscillator2->setPulseWidth(pw2 + inputs[PW_CV_INPUT + 1].getPolyVoltageSimd<float_4>(c) / 10.f);
+            oscillator2->setPulseWidth(pw2 + pw_in2 / 10.f);
             oscillator2->process(args.sampleTime, 0.0);
 
             if (outputs[MIX_OUTPUT].isConnected()) {
                 out = simd::crossfade(oscillator->sqr(), oscillator->saw(), shape);
                 out2 = simd::crossfade(oscillator2->sqr(), oscillator2->saw(), shape2);
-                float_4 mix = clamp(params[MIX_PARAM].getValue() + inputs[MIX_CV_INPUT].getPolyVoltageSimd<float_4>(c) / 10.0, 0.0f, 1.0f);
+                float_4 mix {clamp(params[MIX_PARAM].getValue() + inputs[MIX_CV_INPUT].getPolyVoltageSimd<float_4>(c) / 10.0, 0.0f, 1.0f)};
                 outputs[MIX_OUTPUT].setChannels(channels);
                 outputs[MIX_OUTPUT].setVoltageSimd(5.0f * simd::crossfade(out, out2, mix), c);
             }
