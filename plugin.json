@@ -1,7 +1,7 @@
 {
   "slug": "QuantalAudio",
   "name": "QuantalAudio",
-  "version": "2.0.1",
+  "version": "2.0.2-dev",
   "license": "GPL-3.0-or-later",
   "brand": "QuantalAudio",
   "author": "Jansen Price",
@@ -45,6 +45,18 @@
     {
       "slug": "DaisyMaster",
       "name": "Daisy Mix Master | 3HP",
+      "description": "Modular mixer master",
+      "tags": ["Mixer", "VCA"]
+    },
+    {
+      "slug": "DaisyChannel2",
+      "name": "Daisy Mix Channel - wireless | 2HP",
+      "description": "Modular mixer channel - daisy chainable",
+      "tags": ["Mixer"]
+    },
+    {
+      "slug": "DaisyMaster2",
+      "name": "Daisy Mix Master - wireless | 3HP",
       "description": "Modular mixer master",
       "tags": ["Mixer", "VCA"]
     },
