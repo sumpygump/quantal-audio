@@ -1,7 +1,7 @@
 #include "QuantalAudio.hpp"
 
 struct DaisyMessage {
-	int channels;
+    int channels;
     float voltages_l[16];
     float voltages_r[16];
 
@@ -19,6 +19,7 @@ struct DaisyChannel2 : Module {
     enum ParamIds {
         CH_LVL_PARAM,
         MUTE_PARAM,
+        PAN_PARAM,
         NUM_PARAMS
     };
     enum InputIds {
@@ -43,8 +44,8 @@ struct DaisyChannel2 : Module {
     // Needs to match the divisor in the daisy master class
     float DAISY_DIVISOR = 16.f;
     bool muted = false;
-    bool link_l = 0.f;
-    bool link_r = 0.f;
+    float link_l = 0.f;
+    float link_r = 0.f;
     dsp::SchmittTrigger muteTrigger;
 
     DaisyMessage daisyInputMessage[2][1];
@@ -53,6 +54,7 @@ struct DaisyChannel2 : Module {
     DaisyChannel2() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
         configParam(CH_LVL_PARAM, 0.0f, 1.0f, 1.0f, "Channel level", " dB", -10, 20);
+        configParam(PAN_PARAM, -1.0f, 1.0f, 0.0f, "Panning", "%", 0.f, 100.f);
         configButton(MUTE_PARAM, "Mute");
 
         configInput(CH_INPUT_1, "Channel L");
@@ -62,14 +64,14 @@ struct DaisyChannel2 : Module {
         configOutput(CH_OUTPUT_1, "Channel L");
         configOutput(CH_OUTPUT_2, "Channel R");
 
-		configLight(LINK_LIGHT_L, "Daisy chain link input");
-		configLight(LINK_LIGHT_R, "Daisy chain link output");
+        configLight(LINK_LIGHT_L, "Daisy chain link input");
+        configLight(LINK_LIGHT_R, "Daisy chain link output");
 
         // Set the expander messages
-		leftExpander.producerMessage = daisyInputMessage[0];
-		leftExpander.consumerMessage = daisyInputMessage[1];
-		rightExpander.producerMessage = daisyOutputMessage[0];
-		rightExpander.consumerMessage = daisyOutputMessage[1];
+        leftExpander.producerMessage = daisyInputMessage[0];
+        leftExpander.consumerMessage = daisyInputMessage[1];
+        rightExpander.producerMessage = daisyOutputMessage[0];
+        rightExpander.consumerMessage = daisyOutputMessage[1];
     }
 
     json_t *dataToJson() override {
@@ -104,13 +106,23 @@ struct DaisyChannel2 : Module {
         // Get inputs from this channel strip
         if (!muted) {
             float gain = params[CH_LVL_PARAM].getValue();
+            float pan = params[PAN_PARAM].getValue();
 
             channels = std::max(inputs[CH_INPUT_1].getChannels(), inputs[CH_INPUT_2].getChannels());
+
             inputs[CH_INPUT_1].readVoltages(signals_l);
-            inputs[CH_INPUT_2].readVoltages(signals_r);
+            if (inputs[CH_INPUT_2].active) {
+                inputs[CH_INPUT_2].readVoltages(signals_r);
+            } else {
+                // Copy signals from ch1 into ch2
+                inputs[CH_INPUT_1].readVoltages(signals_r);
+            }
+            //p = M_PI * (clamp(inp, -1.0f, 1.0f) + 1) / 4;
+            //return ::cos(p);
+
             for (int c = 0; c < channels; c++) {
-                signals_l[c] *= std::pow(gain, 2.f);
-                signals_r[c] *= std::pow(gain, 2.f);
+                signals_l[c] *= std::pow(gain, 2.f) * std::cos(M_PI * (pan + 1) / 4);
+                signals_r[c] *= std::pow(gain, 2.f) * std::sin(M_PI * (pan + 1) / 4);
             }
 
             if (inputs[LVL_CV_INPUT].isConnected()) {
@@ -137,7 +149,7 @@ struct DaisyChannel2 : Module {
                 daisySignals_l[c] = msgFromModule->voltages_l[c];
                 daisySignals_r[c] = msgFromModule->voltages_r[c];
             }
-            link_l = 0.1f;
+            link_l = 0.8f;
         } else {
             link_l = 0.0f;
         }
@@ -160,15 +172,15 @@ struct DaisyChannel2 : Module {
                 msgToModule->voltages_r[c] = daisySignals_r[c];
             }
 
-            link_r = 0.1f;
+            link_r = 0.8f;
         } else {
             link_r = 0.0f;
         }
 
         // Set lights
         lights[MUTE_LIGHT].value = (muted);
-		lights[LINK_LIGHT_L].setBrightness(link_l);
-		lights[LINK_LIGHT_R].setBrightness(link_r);
+        lights[LINK_LIGHT_L].setBrightness(link_l);
+        lights[LINK_LIGHT_R].setBrightness(link_r);
     }
 };
 
@@ -182,22 +194,23 @@ struct DaisyChannelWidget2 : ModuleWidget {
         addChild(createWidget<ScrewSilver>(Vec(0, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
         // Channel Input/Output
-        addInput(createInput<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 50.0), module, DaisyChannel2::CH_INPUT_1));
-        addInput(createInput<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 76.0), module, DaisyChannel2::CH_INPUT_2));
+        addInput(createInput<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 45.0), module, DaisyChannel2::CH_INPUT_1));
+        addInput(createInput<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 71.0), module, DaisyChannel2::CH_INPUT_2));
         addOutput(createOutput<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 290.0), module, DaisyChannel2::CH_OUTPUT_1));
         addOutput(createOutput<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 316.0), module, DaisyChannel2::CH_OUTPUT_2));
 
         // Level & CV
-        addParam(createParam<LEDSliderGreen>(Vec(RACK_GRID_WIDTH - 10.5, 147.4), module, DaisyChannel2::CH_LVL_PARAM));
-        addInput(createInput<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 115.0), module, DaisyChannel2::LVL_CV_INPUT));
+        addInput(createInput<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 110.0), module, DaisyChannel2::LVL_CV_INPUT));
+        addParam(createParam<LEDSliderGreen>(Vec(RACK_GRID_WIDTH - 10.5, 138.4), module, DaisyChannel2::CH_LVL_PARAM));
+        addParam(createParamCentered<Trimpot>(Vec(RACK_GRID_WIDTH - 0, 240.0), module, DaisyChannel2::PAN_PARAM));
 
         // Mute
-        addParam(createParam<LEDButton>(Vec(RACK_GRID_WIDTH - 9.0, 230.0), module, DaisyChannel2::MUTE_PARAM));
-        addChild(createLight<MediumLight<RedLight>>(Vec(RACK_GRID_WIDTH - 4.5, 234.25f), module, DaisyChannel2::MUTE_LIGHT));
+        addParam(createParam<LEDButton>(Vec(RACK_GRID_WIDTH - 9.0, 254.0), module, DaisyChannel2::MUTE_PARAM));
+        addChild(createLight<MediumLight<RedLight>>(Vec(RACK_GRID_WIDTH - 4.5, 258.25f), module, DaisyChannel2::MUTE_LIGHT));
 
         // Link lights
-		addChild(createLightCentered<TinyLight<YellowLight>>(Vec(RACK_GRID_WIDTH - 4, 361.0f), module, DaisyChannel2::LINK_LIGHT_L));
-		addChild(createLightCentered<TinyLight<YellowLight>>(Vec(RACK_GRID_WIDTH + 4, 361.0f), module, DaisyChannel2::LINK_LIGHT_R));
+        addChild(createLightCentered<TinyLight<YellowLight>>(Vec(RACK_GRID_WIDTH - 4, 361.0f), module, DaisyChannel2::LINK_LIGHT_L));
+        addChild(createLightCentered<TinyLight<YellowLight>>(Vec(RACK_GRID_WIDTH + 4, 361.0f), module, DaisyChannel2::LINK_LIGHT_R));
     }
 };
 

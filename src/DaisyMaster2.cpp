@@ -1,7 +1,7 @@
 #include "QuantalAudio.hpp"
 
 struct DaisyMessage {
-	int channels;
+    int channels;
     float voltages_l[16];
     float voltages_r[16];
 
@@ -40,7 +40,7 @@ struct DaisyMaster2 : Module {
     // Needs to match the divisor in the daisy channel class
     float DAISY_DIVISOR = 16.f;
     bool muted = false;
-    bool link_l = 0.f;
+    float link_l = 0.f;
     dsp::SchmittTrigger muteTrigger;
 
     DaisyMessage daisyMessages[2][1];
@@ -54,11 +54,11 @@ struct DaisyMaster2 : Module {
         configOutput(MIX_OUTPUT_1, "Mix L");
         configOutput(MIX_OUTPUT_2, "Mix R");
 
-		configLight(LINK_LIGHT_L, "Daisy chain link input");
+        configLight(LINK_LIGHT_L, "Daisy chain link input");
 
         // Set the left expander message instances
-		leftExpander.producerMessage = daisyMessages[0];
-		leftExpander.consumerMessage = daisyMessages[1];
+        leftExpander.producerMessage = daisyMessages[0];
+        leftExpander.consumerMessage = daisyMessages[1];
     }
 
     json_t *dataToJson() override {
@@ -96,8 +96,8 @@ struct DaisyMaster2 : Module {
                     mix_l[c] = msgFromExpander->voltages_l[c];
                     mix_r[c] = msgFromExpander->voltages_r[c];
                 }
-                
-                link_l = 0.1f;
+
+                link_l = 0.8f;
             } else {
                 link_l = 0.0f;
             }
@@ -126,7 +126,7 @@ struct DaisyMaster2 : Module {
         outputs[MIX_OUTPUT_2].writeVoltages(mix_r);
 
         lights[MUTE_LIGHT].value = (muted);
-		lights[LINK_LIGHT_L].setBrightness(link_l);
+        lights[LINK_LIGHT_L].setBrightness(link_l);
     }
 };
 
@@ -146,15 +146,15 @@ struct DaisyMasterWidget2 : ModuleWidget {
         addInput(createInput<PJ301MPort>(Vec(RACK_GRID_WIDTH * 1.5 - (25.0 / 2), 96.0), module, DaisyMaster2::MIX_CV_INPUT));
 
         // Mute
-        addParam(createParam<LEDButton>(Vec(RACK_GRID_WIDTH * 1.5 - 9.0, 230.0), module, DaisyMaster2::MUTE_PARAM));
-        addChild(createLight<MediumLight<RedLight>>(Vec(RACK_GRID_WIDTH * 1.5 - 4.5, 234.25f), module, DaisyMaster2::MUTE_LIGHT));
+        addParam(createParam<LEDButton>(Vec(RACK_GRID_WIDTH * 1.5 - 9.0, 254.0), module, DaisyMaster2::MUTE_PARAM));
+        addChild(createLight<MediumLight<RedLight>>(Vec(RACK_GRID_WIDTH * 1.5 - 4.5, 258.25f), module, DaisyMaster2::MUTE_LIGHT));
 
         // Mix output
         addOutput(createOutput<PJ301MPort>(Vec((RACK_GRID_WIDTH * 1.5) - (25.0 / 2), 290.0), module, DaisyMaster2::MIX_OUTPUT_1));
         addOutput(createOutput<PJ301MPort>(Vec((RACK_GRID_WIDTH * 1.5) - (25.0 / 2), 316.0), module, DaisyMaster2::MIX_OUTPUT_2));
 
         // Link light
-		addChild(createLightCentered<TinyLight<YellowLight>>(Vec(RACK_GRID_WIDTH - 6, 361.0f), module, DaisyMaster2::LINK_LIGHT_L));
+        addChild(createLightCentered<TinyLight<YellowLight>>(Vec(RACK_GRID_WIDTH - 6, 361.0f), module, DaisyMaster2::LINK_LIGHT_L));
     }
 };
 
