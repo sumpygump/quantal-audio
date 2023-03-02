@@ -1,7 +1,7 @@
 
 INKSCAPE=inkscape
 SVGO=svgo
-SVGS=MasterMixer.svg BufferedMult.svg UnityMix.svg DaisyChannel.svg DaisyChannel2.svg DaisyMaster.svg DaisyMaster2.svg Horsehair.svg
+SVGS=MasterMixer.svg BufferedMult.svg UnityMix.svg DaisyChannel.svg DaisyChannel2.svg DaisyChannelSends2.svg DaisyMaster.svg DaisyMaster2.svg Horsehair.svg
 
 all: $(SVGS)
 
@@ -29,6 +29,11 @@ DaisyChannel2.svg: src/DaisyChannel2.src.svg
 	$(INKSCAPE) src/DaisyChannel2.src.svg --export-plain-svg=DaisyChannel2-textpaths.svg --export-text-to-path
 	$(SVGO) -i DaisyChannel2-textpaths.svg -o DaisyChannel2.svg
 	rm DaisyChannel2-textpaths.svg
+
+DaisyChannelSends2.svg: src/DaisyChannelSends2.src.svg
+	$(INKSCAPE) src/DaisyChannelSends2.src.svg --export-plain-svg=DaisyChannelSends2-textpaths.svg --export-text-to-path
+	$(SVGO) -i DaisyChannelSends2-textpaths.svg -o DaisyChannelSends2.svg
+	rm DaisyChannelSends2-textpaths.svg
 
 DaisyMaster.svg: src/DaisyMaster.src.svg
 	$(INKSCAPE) src/DaisyMaster.src.svg --export-plain-svg=DaisyMaster-textpaths.svg --export-text-to-path

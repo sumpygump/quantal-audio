@@ -78,9 +78,7 @@ struct DaisyMaster2 : Module {
     }
 
     void process(const ProcessArgs &args) override {
-        if (muteTrigger.process(params[MUTE_PARAM].getValue())) {
-            muted = !muted;
-        }
+        muted = params[MUTE_PARAM].getValue() > 0.f;
 
         int channels = 1;
         float mix_l[16] = {};
@@ -88,7 +86,7 @@ struct DaisyMaster2 : Module {
 
         if (!muted) {
             // Get daisy-chained data from left-side linked module
-            if (leftExpander.module && leftExpander.module->model == modelDaisyChannel2) {
+            if (leftExpander.module && (leftExpander.module->model == modelDaisyChannel2 || leftExpander.module->model == modelDaisyChannelSends2)) {
                 DaisyMessage *msgFromExpander = (DaisyMessage*)(leftExpander.module->rightExpander.consumerMessage);
 
                 channels = msgFromExpander->channels;
@@ -146,8 +144,9 @@ struct DaisyMasterWidget2 : ModuleWidget {
         addInput(createInput<PJ301MPort>(Vec(RACK_GRID_WIDTH * 1.5 - (25.0 / 2), 96.0), module, DaisyMaster2::MIX_CV_INPUT));
 
         // Mute
-        addParam(createParam<LEDButton>(Vec(RACK_GRID_WIDTH * 1.5 - 9.0, 254.0), module, DaisyMaster2::MUTE_PARAM));
-        addChild(createLight<MediumLight<RedLight>>(Vec(RACK_GRID_WIDTH * 1.5 - 4.5, 258.25f), module, DaisyMaster2::MUTE_LIGHT));
+        addParam(createLightParam<VCVLightLatch<MediumSimpleLight<RedLight>>>(Vec(RACK_GRID_WIDTH * 1.5 - 9.0, 254.0), module, DaisyMaster2::MUTE_PARAM, DaisyMaster2::MUTE_LIGHT));
+        // addParam(createParam<LEDButton>(Vec(RACK_GRID_WIDTH * 1.5 - 9.0, 254.0), module, DaisyMaster2::MUTE_PARAM));
+        // addChild(createLight<MediumLight<RedLight>>(Vec(RACK_GRID_WIDTH * 1.5 - 4.5, 258.25f), module, DaisyMaster2::MUTE_LIGHT));
 
         // Mix output
         addOutput(createOutput<PJ301MPort>(Vec((RACK_GRID_WIDTH * 1.5) - (25.0 / 2), 290.0), module, DaisyMaster2::MIX_OUTPUT_1));

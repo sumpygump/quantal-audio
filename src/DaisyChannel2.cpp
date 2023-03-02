@@ -46,7 +46,6 @@ struct DaisyChannel2 : Module {
     bool muted = false;
     float link_l = 0.f;
     float link_r = 0.f;
-    dsp::SchmittTrigger muteTrigger;
 
     DaisyMessage daisyInputMessage[2][1];
     DaisyMessage daisyOutputMessage[2][1];
@@ -55,7 +54,7 @@ struct DaisyChannel2 : Module {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
         configParam(CH_LVL_PARAM, 0.0f, 1.0f, 1.0f, "Channel level", " dB", -10, 20);
         configParam(PAN_PARAM, -1.0f, 1.0f, 0.0f, "Panning", "%", 0.f, 100.f);
-        configButton(MUTE_PARAM, "Mute");
+        configSwitch(MUTE_PARAM, 0.f, 1.f, 0.f, "Mute", {"Not muted", "Muted"});
 
         configInput(CH_INPUT_1, "Channel L");
         configInput(CH_INPUT_2, "Channel R");
@@ -91,9 +90,7 @@ struct DaisyChannel2 : Module {
     }
 
     void process(const ProcessArgs &args) override {
-        if (muteTrigger.process(params[MUTE_PARAM].getValue())) {
-            muted = !muted;
-        }
+        muted = params[MUTE_PARAM].getValue() > 0.f;
 
         float signals_l[16] = {};
         float signals_r[16] = {};
@@ -117,8 +114,6 @@ struct DaisyChannel2 : Module {
                 // Copy signals from ch1 into ch2
                 inputs[CH_INPUT_1].readVoltages(signals_r);
             }
-            //p = M_PI * (clamp(inp, -1.0f, 1.0f) + 1) / 4;
-            //return ::cos(p);
 
             for (int c = 0; c < channels; c++) {
                 signals_l[c] *= std::pow(gain, 2.f) * std::cos(M_PI * (pan + 1) / 4);
@@ -142,7 +137,7 @@ struct DaisyChannel2 : Module {
         outputs[CH_OUTPUT_2].writeVoltages(signals_r);
 
         // Get daisy-chained data from left-side linked module
-        if (leftExpander.module && leftExpander.module->model == modelDaisyChannel2) {
+        if (leftExpander.module && (leftExpander.module->model == modelDaisyChannel2 || leftExpander.module->model == modelDaisyChannelSends2)) {
             DaisyMessage *msgFromModule = (DaisyMessage *)(leftExpander.module->rightExpander.consumerMessage);
             chainChannels = msgFromModule->channels;
             for (int c = 0; c < chainChannels; c++) {
@@ -157,7 +152,7 @@ struct DaisyChannel2 : Module {
         maxChannels = std::max(chainChannels, channels);
 
         // Set daisy-chained output to right-side linked module
-        if (rightExpander.module && (rightExpander.module->model == modelDaisyMaster2 || rightExpander.module->model == modelDaisyChannel2)) {
+        if (rightExpander.module && (rightExpander.module->model == modelDaisyMaster2 || rightExpander.module->model == modelDaisyChannel2 || rightExpander.module->model == modelDaisyChannelSends2)) {
             DaisyMessage *msgToModule = (DaisyMessage *)(rightExpander.consumerMessage);
 
             // Make the voltage small to the chain by dividing by the divisor;
@@ -205,8 +200,7 @@ struct DaisyChannelWidget2 : ModuleWidget {
         addParam(createParamCentered<Trimpot>(Vec(RACK_GRID_WIDTH - 0, 240.0), module, DaisyChannel2::PAN_PARAM));
 
         // Mute
-        addParam(createParam<LEDButton>(Vec(RACK_GRID_WIDTH - 9.0, 254.0), module, DaisyChannel2::MUTE_PARAM));
-        addChild(createLight<MediumLight<RedLight>>(Vec(RACK_GRID_WIDTH - 4.5, 258.25f), module, DaisyChannel2::MUTE_LIGHT));
+        addParam(createLightParam<VCVLightLatch<MediumSimpleLight<RedLight>>>(Vec(RACK_GRID_WIDTH - 9.0, 254.0), module, DaisyChannel2::MUTE_PARAM, DaisyChannel2::MUTE_LIGHT));
 
         // Link lights
         addChild(createLightCentered<TinyLight<YellowLight>>(Vec(RACK_GRID_WIDTH - 4, 361.0f), module, DaisyChannel2::LINK_LIGHT_L));
