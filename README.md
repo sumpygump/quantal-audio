@@ -33,8 +33,6 @@ Below is an image of an example daisy mixer composed from various daisy chain mi
 
 Note that there are several input channels chained together and then an aux channel. The aux channel receives the mixed signal from all the previous channels on the left. The other two channels on the right could be for a return signal from the aux sends or other audio signals that are not included in the aux send.
 
-It is not recommended to send voltage signals in or out of the daisy plugs other than daisy-to-daisy connections. The way the daisy chain works is by making very low voltage in order to pass the signal along until it gets to the master bus which raises the voltage back up. Sending a higher signal into the daisy plugs will result in distortion.
-
 ## AUX | Daisy Mix Channel Aux Sends | 2HP
 
 This module will simply collect the mix from all previous daisy mix channels in the chain and provide two stereo outputs to send off for effects processing. Bring back the signal into the mixer by adding another channel strip to the right.
