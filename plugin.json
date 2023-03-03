@@ -52,25 +52,25 @@
       "slug": "DaisyChannel2",
       "name": "Daisy Mix Channel STEREO | 2HP",
       "description": "Modular mixer channel - proximity daisy chainable",
-      "tags": ["Mixer", "VCA", "Polyphonic"]
+      "tags": ["Mixer", "VCA", "Polyphonic", "Expander"]
     },
     {
       "slug": "DaisyChannelVu",
       "name": "Daisy Mix Channel VU | 2HP",
       "description": "Modular mixer VU - proximity daisy chainable",
-      "tags": ["Mixer", "Polyphonic", "Visual"]
+      "tags": ["Mixer", "Polyphonic", "Visual", "Expander"]
     },
     {
       "slug": "DaisyChannelSends2",
       "name": "Daisy Mix Channel Aux Sends STEREO | 2HP",
       "description": "Modular mixer channel aux sends - proximity daisy chainable",
-      "tags": ["Mixer", "Polyphonic"]
+      "tags": ["Mixer", "Polyphonic", "Expander"]
     },
     {
       "slug": "DaisyMaster2",
       "name": "Daisy Mix Master STEREO | 3HP",
       "description": "Modular mixer master - proximity daisy chain",
-      "tags": ["Mixer", "Polyphonic"]
+      "tags": ["Mixer", "Polyphonic", "Expander"]
     },
     {
       "slug": "Horsehair",
