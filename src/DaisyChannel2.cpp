@@ -1,19 +1,5 @@
 #include "QuantalAudio.hpp"
-
-struct DaisyMessage {
-    int channels;
-    float voltages_l[16];
-    float voltages_r[16];
-
-    DaisyMessage() {
-        // Init defaults
-        channels = 1;
-        for (int c = 0; c < 16; c++) {
-            voltages_l[c] = 0.0f;
-            voltages_r[c] = 0.0f;
-        }
-    }
-};
+#include "Daisy.hpp"
 
 struct DaisyChannel2 : Module {
     enum ParamIds {
@@ -46,6 +32,7 @@ struct DaisyChannel2 : Module {
     bool muted = false;
     float link_l = 0.f;
     float link_r = 0.f;
+    dsp::ClockDivider lightDivider;
 
     DaisyMessage daisyInputMessage[2][1];
     DaisyMessage daisyOutputMessage[2][1];
@@ -71,6 +58,8 @@ struct DaisyChannel2 : Module {
         leftExpander.consumerMessage = daisyInputMessage[1];
         rightExpander.producerMessage = daisyOutputMessage[0];
         rightExpander.consumerMessage = daisyOutputMessage[1];
+
+        lightDivider.setDivision(512);
     }
 
     json_t *dataToJson() override {
@@ -108,7 +97,7 @@ struct DaisyChannel2 : Module {
             channels = std::max(inputs[CH_INPUT_1].getChannels(), inputs[CH_INPUT_2].getChannels());
 
             inputs[CH_INPUT_1].readVoltages(signals_l);
-            if (inputs[CH_INPUT_2].active) {
+            if (inputs[CH_INPUT_2].isConnected()) {
                 inputs[CH_INPUT_2].readVoltages(signals_r);
             } else {
                 // Copy signals from ch1 into ch2
@@ -121,8 +110,8 @@ struct DaisyChannel2 : Module {
             }
 
             if (inputs[LVL_CV_INPUT].isConnected()) {
-                float _cv = clamp(inputs[LVL_CV_INPUT].getVoltage() / 10.f, 0.f, 1.f);
                 for (int c = 0; c < channels; c++) {
+                    float _cv = clamp(inputs[LVL_CV_INPUT].getPolyVoltage(c) / 10.f, 0.f, 1.f);
                     signals_l[c] *= _cv;
                     signals_r[c] *= _cv;
                 }
@@ -137,7 +126,11 @@ struct DaisyChannel2 : Module {
         outputs[CH_OUTPUT_2].writeVoltages(signals_r);
 
         // Get daisy-chained data from left-side linked module
-        if (leftExpander.module && (leftExpander.module->model == modelDaisyChannel2 || leftExpander.module->model == modelDaisyChannelSends2)) {
+        if (leftExpander.module && (
+            leftExpander.module->model == modelDaisyChannel2
+            || leftExpander.module->model == modelDaisyChannelVu
+            || leftExpander.module->model == modelDaisyChannelSends2
+        )) {
             DaisyMessage *msgFromModule = (DaisyMessage *)(leftExpander.module->rightExpander.consumerMessage);
             chainChannels = msgFromModule->channels;
             for (int c = 0; c < chainChannels; c++) {
@@ -152,8 +145,19 @@ struct DaisyChannel2 : Module {
         maxChannels = std::max(chainChannels, channels);
 
         // Set daisy-chained output to right-side linked module
-        if (rightExpander.module && (rightExpander.module->model == modelDaisyMaster2 || rightExpander.module->model == modelDaisyChannel2 || rightExpander.module->model == modelDaisyChannelSends2)) {
-            DaisyMessage *msgToModule = (DaisyMessage *)(rightExpander.consumerMessage);
+        if (rightExpander.module && (
+            rightExpander.module->model == modelDaisyMaster2
+            || rightExpander.module->model == modelDaisyChannel2
+            || rightExpander.module->model == modelDaisyChannelVu
+            || rightExpander.module->model == modelDaisyChannelSends2
+        )) {
+            // Write this module's output to the producer message
+            DaisyMessage *msgThisModule = (DaisyMessage *)(rightExpander.producerMessage);
+            msgThisModule->channels = channels;
+            for (int c = 0; c < channels; c++) {
+                msgThisModule->voltages_l[c] = signals_l[c];
+                msgThisModule->voltages_r[c] = signals_r[c];
+            }
 
             // Make the voltage small to the chain by dividing by the divisor;
             for (int c = 0; c < maxChannels; c++) {
@@ -161,6 +165,7 @@ struct DaisyChannel2 : Module {
                 daisySignals_r[c] += signals_r[c] / DAISY_DIVISOR;
             }
 
+            DaisyMessage *msgToModule = (DaisyMessage *)(rightExpander.consumerMessage);
             msgToModule->channels = maxChannels;
             for (int c = 0; c < maxChannels; c++) {
                 msgToModule->voltages_l[c] = daisySignals_l[c];
@@ -173,9 +178,11 @@ struct DaisyChannel2 : Module {
         }
 
         // Set lights
-        lights[MUTE_LIGHT].value = (muted);
-        lights[LINK_LIGHT_L].setBrightness(link_l);
-        lights[LINK_LIGHT_R].setBrightness(link_r);
+        if (lightDivider.process()) {
+            lights[MUTE_LIGHT].value = (muted);
+            lights[LINK_LIGHT_L].setBrightness(link_l);
+            lights[LINK_LIGHT_R].setBrightness(link_r);
+        }
     }
 };
 

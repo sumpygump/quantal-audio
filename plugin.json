@@ -1,7 +1,7 @@
 {
   "slug": "QuantalAudio",
   "name": "QuantalAudio",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "license": "GPL-3.0-or-later",
   "brand": "QuantalAudio",
   "author": "Jansen Price",
@@ -46,13 +46,19 @@
       "slug": "DaisyMaster",
       "name": "Daisy Mix Master MONO | 3HP",
       "description": "Modular mixer master - legacy",
-      "tags": ["Mixer", "VCA", "Polyphonic"]
+      "tags": ["Mixer", "Polyphonic"]
     },
     {
       "slug": "DaisyChannel2",
       "name": "Daisy Mix Channel STEREO | 2HP",
       "description": "Modular mixer channel - proximity daisy chainable",
-      "tags": ["Mixer", "Polyphonic"]
+      "tags": ["Mixer", "VCA", "Polyphonic"]
+    },
+    {
+      "slug": "DaisyChannelVu",
+      "name": "Daisy Mix Channel VU | 2HP",
+      "description": "Modular mixer VU - proximity daisy chainable",
+      "tags": ["Mixer", "Polyphonic", "Visual"]
     },
     {
       "slug": "DaisyChannelSends2",
@@ -64,7 +70,7 @@
       "slug": "DaisyMaster2",
       "name": "Daisy Mix Master STEREO | 3HP",
       "description": "Modular mixer master - proximity daisy chain",
-      "tags": ["Mixer", "VCA", "Polyphonic"]
+      "tags": ["Mixer", "Polyphonic"]
     },
     {
       "slug": "Horsehair",

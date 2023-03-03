@@ -1,19 +1,5 @@
 #include "QuantalAudio.hpp"
-
-struct DaisyMessage {
-    int channels;
-    float voltages_l[16];
-    float voltages_r[16];
-
-    DaisyMessage() {
-        // Init defaults
-        channels = 1;
-        for (int c = 0; c < 16; c++) {
-            voltages_l[c] = 0.0f;
-            voltages_r[c] = 0.0f;
-        }
-    }
-};
+#include "Daisy.hpp"
 
 struct DaisyMaster2 : Module {
     enum ParamIds {
@@ -41,14 +27,13 @@ struct DaisyMaster2 : Module {
     float DAISY_DIVISOR = 16.f;
     bool muted = false;
     float link_l = 0.f;
-    dsp::SchmittTrigger muteTrigger;
 
     DaisyMessage daisyMessages[2][1];
 
     DaisyMaster2() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
         configParam(MIX_LVL_PARAM, 0.0f, 2.0f, 1.0f, "Mix level", " dB", -10, 20);
-        configButton(MUTE_PARAM, "Mute");
+        configSwitch(MUTE_PARAM, 0.f, 1.f, 0.f, "Mute", {"Not muted", "Muted"});
 
         configInput(MIX_CV_INPUT, "Level CV");
         configOutput(MIX_OUTPUT_1, "Mix L");
@@ -86,7 +71,11 @@ struct DaisyMaster2 : Module {
 
         if (!muted) {
             // Get daisy-chained data from left-side linked module
-            if (leftExpander.module && (leftExpander.module->model == modelDaisyChannel2 || leftExpander.module->model == modelDaisyChannelSends2)) {
+            if (leftExpander.module && (
+                leftExpander.module->model == modelDaisyChannel2
+                || leftExpander.module->model == modelDaisyChannelVu
+                || leftExpander.module->model == modelDaisyChannelSends2
+            )) {
                 DaisyMessage *msgFromExpander = (DaisyMessage*)(leftExpander.module->rightExpander.consumerMessage);
 
                 channels = msgFromExpander->channels;
@@ -110,8 +99,8 @@ struct DaisyMaster2 : Module {
 
             float mix_cv = 1.f;
             if (inputs[MIX_CV_INPUT].isConnected()) {
-                mix_cv = clamp(inputs[MIX_CV_INPUT].getVoltage() / 10.f, 0.f, 1.f);
                 for (int c = 0; c < channels; c++) {
+                    mix_cv = clamp(inputs[MIX_CV_INPUT].getPolyVoltage(c) / 10.f, 0.f, 1.f);
                     mix_l[c] *= mix_cv;
                     mix_r[c] *= mix_cv;
                 }
@@ -145,8 +134,6 @@ struct DaisyMasterWidget2 : ModuleWidget {
 
         // Mute
         addParam(createLightParam<VCVLightLatch<MediumSimpleLight<RedLight>>>(Vec(RACK_GRID_WIDTH * 1.5 - 9.0, 254.0), module, DaisyMaster2::MUTE_PARAM, DaisyMaster2::MUTE_LIGHT));
-        // addParam(createParam<LEDButton>(Vec(RACK_GRID_WIDTH * 1.5 - 9.0, 254.0), module, DaisyMaster2::MUTE_PARAM));
-        // addChild(createLight<MediumLight<RedLight>>(Vec(RACK_GRID_WIDTH * 1.5 - 4.5, 258.25f), module, DaisyMaster2::MUTE_LIGHT));
 
         // Mix output
         addOutput(createOutput<PJ301MPort>(Vec((RACK_GRID_WIDTH * 1.5) - (25.0 / 2), 290.0), module, DaisyMaster2::MIX_OUTPUT_1));

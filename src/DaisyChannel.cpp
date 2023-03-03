@@ -75,8 +75,8 @@ struct DaisyChannel : Module {
             //ch *= powf(params[CH_LVL_PARAM].getValue(), 2.f);
 
             if (inputs[LVL_CV_INPUT].isConnected()) {
-                float _cv = clamp(inputs[LVL_CV_INPUT].getVoltage() / 10.f, 0.f, 1.f);
                 for (int c = 0; c < channels; c++) {
+                    float _cv = clamp(inputs[LVL_CV_INPUT].getPolyVoltage(c) / 10.f, 0.f, 1.f);
                     signals[c] *= _cv;
                 }
             }
