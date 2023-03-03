@@ -39,6 +39,10 @@ It is not recommended to send voltage signals in or out of the daisy plugs other
 
 This module will simply collect the mix from all previous daisy mix channels in the chain and provide two stereo outputs to send off for effects processing. Bring back the signal into the mixer by adding another channel strip to the right.
 
+## VU | Daisy Mix Channel VU Meter | 1HP
+
+Attach this module to the right of a Daisy Channel strip and it will show a VU meter of the voltage signal for that channel strip. Part of the Daisy chain modular mixer.
+
 ## D-MX2 | Daisy Mix Master STEREO | 3HP
 
 The final module in the end of the chain, acts as a master bus for the Daisy-chained channels. It has a master fader knob with CV control, a mute button, and two output channels (L and R). The master bus will clamp signals to (+/-) 12 volt output signal.
