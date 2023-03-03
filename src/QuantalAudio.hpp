@@ -13,6 +13,7 @@ extern Model *modelUnityMix;
 extern Model *modelDaisyChannel;
 extern Model *modelDaisyChannel2;
 extern Model *modelDaisyChannelSends2;
+extern Model *modelDaisyChannelVu;
 extern Model *modelDaisyMaster;
 extern Model *modelDaisyMaster2;
 extern Model *modelHorsehair;

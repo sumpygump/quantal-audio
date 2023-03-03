@@ -75,8 +75,8 @@ struct DaisyMaster : Module {
 
             float mix_cv = 1.f;
             if (inputs[MIX_CV_INPUT].isConnected()) {
-                mix_cv = clamp(inputs[MIX_CV_INPUT].getVoltage() / 10.f, 0.f, 1.f);
                 for (int c = 0; c < channels; c++) {
+                    mix_cv = clamp(inputs[MIX_CV_INPUT].getPolyVoltage(c) / 10.f, 0.f, 1.f);
                     mix[c] *= mix_cv;
                 }
             }

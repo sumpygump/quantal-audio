@@ -12,6 +12,7 @@ void init(Plugin *p) {
     p->addModel(modelDaisyChannel);
     p->addModel(modelDaisyChannel2);
     p->addModel(modelDaisyChannelSends2);
+    p->addModel(modelDaisyChannelVu);
     p->addModel(modelDaisyMaster);
     p->addModel(modelDaisyMaster2);
     p->addModel(modelHorsehair);
