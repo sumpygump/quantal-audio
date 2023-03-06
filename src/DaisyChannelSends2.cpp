@@ -19,9 +19,6 @@ struct DaisyChannelSends2 : Module {
         NUM_LIGHTS
     };
 
-    // Hypothetically the max number of channels that could be chained
-    // Needs to match the divisor in the daisy master class
-    float DAISY_DIVISOR = 16.f;
     bool muted = false;
     float link_l = 0.f;
     float link_r = 0.f;
@@ -40,10 +37,10 @@ struct DaisyChannelSends2 : Module {
         configLight(LINK_LIGHT_R, "Daisy chain link output");
 
         // Set the expander messages
-        leftExpander.producerMessage = daisyInputMessage[0];
-        leftExpander.consumerMessage = daisyInputMessage[1];
-        rightExpander.producerMessage = daisyOutputMessage[0];
-        rightExpander.consumerMessage = daisyOutputMessage[1];
+        leftExpander.producerMessage = &daisyInputMessage[0];
+        leftExpander.consumerMessage = &daisyInputMessage[1];
+        rightExpander.producerMessage = &daisyOutputMessage[0];
+        rightExpander.consumerMessage = &daisyOutputMessage[1];
 
         lightDivider.setDivision(512);
     }
@@ -59,7 +56,7 @@ struct DaisyChannelSends2 : Module {
             || leftExpander.module->model == modelDaisyChannelVu
             || leftExpander.module->model == modelDaisyChannelSends2
         )) {
-            DaisyMessage *msgFromModule = (DaisyMessage *)(leftExpander.module->rightExpander.consumerMessage);
+            DaisyMessage *msgFromModule = (DaisyMessage *)(leftExpander.consumerMessage);
 
             chainChannels = msgFromModule->channels;
             for (int c = 0; c < chainChannels; c++) {
@@ -78,7 +75,7 @@ struct DaisyChannelSends2 : Module {
             || rightExpander.module->model == modelDaisyChannelVu
             || rightExpander.module->model == modelDaisyChannelSends2
         )) {
-            DaisyMessage *msgToModule = (DaisyMessage *)(rightExpander.consumerMessage);
+            DaisyMessage *msgToModule = (DaisyMessage *)(rightExpander.module->leftExpander.producerMessage);
             msgToModule->channels = chainChannels;
             for (int c = 0; c < chainChannels; c++) {
                 msgToModule->voltages_l[c] = mix_l[c];
@@ -99,12 +96,16 @@ struct DaisyChannelSends2 : Module {
         // Set daisy-chained output to right-side linked module
         if (rightExpander.module && rightExpander.module->model == modelDaisyChannelVu) {
             // Write this module's output to the producer message
-            DaisyMessage *msgThisModule = (DaisyMessage *)(rightExpander.producerMessage);
-            msgThisModule->channels = chainChannels;
+            DaisyMessage *msgToModule = (DaisyMessage *)(rightExpander.module->leftExpander.producerMessage);
+            msgToModule->single_channels = chainChannels;
             for (int c = 0; c < chainChannels; c++) {
-                msgThisModule->voltages_l[c] = mix_l[c];
-                msgThisModule->voltages_r[c] = mix_r[c];
+                msgToModule->single_voltages_l[c] = mix_l[c];
+                msgToModule->single_voltages_r[c] = mix_r[c];
             }
+        }
+
+        if (link_r > 0.0) {
+            rightExpander.module->leftExpander.messageFlipRequested = true;
         }
 
         // Set aggregated decoded output

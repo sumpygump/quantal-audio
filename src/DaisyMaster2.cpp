@@ -22,11 +22,9 @@ struct DaisyMaster2 : Module {
         NUM_LIGHTS
     };
 
-    // Hypothetically the max number of channels that could be chained
-    // Needs to match the divisor in the daisy channel class
-    float DAISY_DIVISOR = 16.f;
     bool muted = false;
     float link_l = 0.f;
+    dsp::ClockDivider lightDivider;
 
     DaisyMessage daisyMessages[2][1];
 
@@ -42,8 +40,10 @@ struct DaisyMaster2 : Module {
         configLight(LINK_LIGHT_L, "Daisy chain link input");
 
         // Set the left expander message instances
-        leftExpander.producerMessage = daisyMessages[0];
-        leftExpander.consumerMessage = daisyMessages[1];
+        leftExpander.producerMessage = &daisyMessages[0];
+        leftExpander.consumerMessage = &daisyMessages[1];
+
+        lightDivider.setDivision(512);
     }
 
     json_t *dataToJson() override {
@@ -76,7 +76,7 @@ struct DaisyMaster2 : Module {
                 || leftExpander.module->model == modelDaisyChannelVu
                 || leftExpander.module->model == modelDaisyChannelSends2
             )) {
-                DaisyMessage *msgFromExpander = (DaisyMessage*)(leftExpander.module->rightExpander.consumerMessage);
+                DaisyMessage *msgFromExpander = (DaisyMessage*)(leftExpander.consumerMessage);
 
                 channels = msgFromExpander->channels;
                 for (int c = 0; c < channels; c++) {
@@ -105,6 +105,17 @@ struct DaisyMaster2 : Module {
                     mix_r[c] *= mix_cv;
                 }
             }
+
+            // Set output to right-side linked VU meter module
+            if (rightExpander.module && rightExpander.module->model == modelDaisyChannelVu) {
+                DaisyMessage *msgToModule = (DaisyMessage *)(rightExpander.module->leftExpander.producerMessage);
+                msgToModule->single_channels = channels;
+                for (int c = 0; c < channels; c++) {
+                    msgToModule->single_voltages_l[c] = mix_l[c];
+                    msgToModule->single_voltages_r[c] = mix_r[c];
+                }
+                rightExpander.module->leftExpander.messageFlipRequested = true;
+            }
         }
 
         outputs[MIX_OUTPUT_1].setChannels(channels);
@@ -112,8 +123,11 @@ struct DaisyMaster2 : Module {
         outputs[MIX_OUTPUT_2].setChannels(channels);
         outputs[MIX_OUTPUT_2].writeVoltages(mix_r);
 
-        lights[MUTE_LIGHT].value = (muted);
-        lights[LINK_LIGHT_L].setBrightness(link_l);
+        // Set lights
+        if (lightDivider.process()) {
+            lights[MUTE_LIGHT].value = (muted);
+            lights[LINK_LIGHT_L].setBrightness(link_l);
+        }
     }
 };
 

@@ -46,10 +46,10 @@ struct DaisyChannelVu : Module {
         configLight(LINK_LIGHT_R, "Daisy chain link output");
 
         // Set the expander messages
-        leftExpander.producerMessage = daisyInputMessage[0];
-        leftExpander.consumerMessage = daisyInputMessage[1];
-        rightExpander.producerMessage = daisyOutputMessage[0];
-        rightExpander.consumerMessage = daisyOutputMessage[1];
+        leftExpander.producerMessage = &daisyInputMessage[0];
+        leftExpander.consumerMessage = &daisyInputMessage[1];
+        rightExpander.producerMessage = &daisyOutputMessage[0];
+        rightExpander.consumerMessage = &daisyOutputMessage[1];
 
         lightDivider.setDivision(512);
     }
@@ -67,25 +67,27 @@ struct DaisyChannelVu : Module {
             leftExpander.module->model == modelDaisyChannel2
             || leftExpander.module->model == modelDaisyChannelVu
             || leftExpander.module->model == modelDaisyChannelSends2
+            || leftExpander.module->model == modelDaisyMaster2
         )) {
-            DaisyMessage *msgFromModule = (DaisyMessage *)(leftExpander.module->rightExpander.consumerMessage);
+            DaisyMessage *msgFromModule = (DaisyMessage *)(leftExpander.consumerMessage);
             chainChannels = msgFromModule->channels;
             for (int c = 0; c < chainChannels; c++) {
                 daisySignals_l[c] = msgFromModule->voltages_l[c];
                 daisySignals_r[c] = msgFromModule->voltages_r[c];
             }
 
-            // Get the immediate signal
-            DaisyMessage *msgImmediateModule = (DaisyMessage *)(leftExpander.module->rightExpander.producerMessage);
-            for (int c = 0; c < msgImmediateModule->channels; c++) {
-                signals_l[c] = msgImmediateModule->voltages_l[c];
-                signals_r[c] = msgImmediateModule->voltages_r[c];
+            // Get the immediate signal from single channel strip
+            for (int c = 0; c < msgFromModule->single_channels; c++) {
+                signals_l[c] = msgFromModule->single_voltages_l[c];
+                signals_r[c] = msgFromModule->single_voltages_r[c];
             }
             vuMeter[0].process(args.sampleTime, _getVoltageSum(chainChannels, signals_l) / 10.f);
             vuMeter[1].process(args.sampleTime, _getVoltageSum(chainChannels, signals_r) / 10.f);
 
             link_l = 0.8f;
         } else {
+            vuMeter[0].process(args.sampleTime, 0.0f);
+            vuMeter[1].process(args.sampleTime, 0.0f);
             link_l = 0.0f;
         }
 
@@ -96,13 +98,15 @@ struct DaisyChannelVu : Module {
             || rightExpander.module->model == modelDaisyChannelVu
             || rightExpander.module->model == modelDaisyChannelSends2
         )) {
-            DaisyMessage *msgToModule = (DaisyMessage *)(rightExpander.consumerMessage);
+            DaisyMessage *msgToModule = (DaisyMessage *)(rightExpander.module->leftExpander.producerMessage);
 
             msgToModule->channels = chainChannels;
             for (int c = 0; c < chainChannels; c++) {
                 msgToModule->voltages_l[c] = daisySignals_l[c];
                 msgToModule->voltages_r[c] = daisySignals_r[c];
             }
+
+            rightExpander.module->leftExpander.messageFlipRequested = true;
 
             link_r = 0.8f;
         } else {
@@ -146,11 +150,6 @@ struct DaisyChannelVuWidget : ModuleWidget {
             addChild(createLightCentered<VCVSliderLight<RedLight>>(Vec(RACK_GRID_WIDTH/2 - 3.f, 339.f - i * 7), module, DaisyChannelVu::VU_LIGHTS_L + i));
             addChild(createLightCentered<VCVSliderLight<RedLight>>(Vec(RACK_GRID_WIDTH/2 + 3.f, 339.f - i * 7), module, DaisyChannelVu::VU_LIGHTS_R + i));
         }
-
-        //for (int i = 0; i < VU_LIGHT_COUNT; i++) {
-        //    addChild(createLightCentered<SmallSimpleLight<GreenLight>>(Vec(RACK_GRID_WIDTH/2 - 3.f, 340.f - i * 7), module, DaisyChannelVu::VU_LIGHTS_L + i));
-        //    addChild(createLightCentered<SmallSimpleLight<GreenLight>>(Vec(RACK_GRID_WIDTH/2 + 3.f, 340.f - i * 7), module, DaisyChannelVu::VU_LIGHTS_R + i));
-        //}
     }
 };
 

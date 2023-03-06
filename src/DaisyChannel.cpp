@@ -1,4 +1,5 @@
 #include "QuantalAudio.hpp"
+#include "Daisy.hpp"
 
 struct DaisyChannel : Module {
     enum ParamIds {
@@ -22,9 +23,6 @@ struct DaisyChannel : Module {
         NUM_LIGHTS
     };
 
-    // Hypothetically the max number of channels that could be chained
-    // Needs to match the divisor in the daisy master class
-    float DAISY_DIVISOR = 16.f;
     bool muted = false;
     dsp::SchmittTrigger muteTrigger;
 
