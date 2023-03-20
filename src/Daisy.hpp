@@ -14,6 +14,16 @@ struct DaisyMessage {
     int single_channels = 1;
     float single_voltages_l[16] = {};
     float single_voltages_r[16] = {};
+
+    // Aux 1 send signal
+    int aux1_channels = 1;
+    float aux1_voltages_l[16] = {};
+    float aux1_voltages_r[16] = {};
+
+    // Aux 2 send signal
+    int aux2_channels = 1;
+    float aux2_voltages_l[16] = {};
+    float aux2_voltages_r[16] = {};
 };
 
 #endif

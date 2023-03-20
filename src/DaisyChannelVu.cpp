@@ -56,11 +56,17 @@ struct DaisyChannelVu : Module {
 
     void process(const ProcessArgs &args) override {
 
+        int chainChannels = 1;
         float signals_l[16] = {};
         float signals_r[16] = {};
         float daisySignals_l[16] = {};
         float daisySignals_r[16] = {};
-        int chainChannels = 1;
+        int aux1Channels = 1;
+        float aux1_signals_l[16] = {};
+        float aux1_signals_r[16] = {};
+        int aux2Channels = 1;
+        float aux2_signals_l[16] = {};
+        float aux2_signals_r[16] = {};
 
         // Get daisy-chained data from left-side linked module
         if (leftExpander.module && (
@@ -84,6 +90,18 @@ struct DaisyChannelVu : Module {
             vuMeter[0].process(args.sampleTime, _getVoltageSum(chainChannels, signals_l) / 10.f);
             vuMeter[1].process(args.sampleTime, _getVoltageSum(chainChannels, signals_r) / 10.f);
 
+            // Get the aux signal to pass it through
+            aux1Channels = msgFromModule->aux1_channels;
+            for (int c = 0; c < aux1Channels; c++) {
+                aux1_signals_l[c] = msgFromModule->aux1_voltages_l[c];
+                aux1_signals_r[c] = msgFromModule->aux1_voltages_r[c];
+            }
+            aux2Channels = msgFromModule->aux2_channels;
+            for (int c = 0; c < aux2Channels; c++) {
+                aux2_signals_l[c] = msgFromModule->aux2_voltages_l[c];
+                aux2_signals_r[c] = msgFromModule->aux2_voltages_r[c];
+            }
+
             link_l = 0.8f;
         } else {
             vuMeter[0].process(args.sampleTime, 0.0f);
@@ -104,6 +122,18 @@ struct DaisyChannelVu : Module {
             for (int c = 0; c < chainChannels; c++) {
                 msgToModule->voltages_l[c] = daisySignals_l[c];
                 msgToModule->voltages_r[c] = daisySignals_r[c];
+            }
+
+            // Send along aux signals
+            msgToModule->aux1_channels = aux1Channels;
+            for (int c = 0; c < aux1Channels; c++ ){
+                msgToModule->aux1_voltages_l[c] = aux1_signals_l[c];
+                msgToModule->aux1_voltages_r[c] = aux1_signals_r[c];
+            }
+            msgToModule->aux2_channels = aux2Channels;
+            for (int c = 0; c < aux2Channels; c++ ){
+                msgToModule->aux2_voltages_l[c] = aux2_signals_l[c];
+                msgToModule->aux2_voltages_r[c] = aux2_signals_r[c];
             }
 
             rightExpander.module->leftExpander.messageFlipRequested = true;
