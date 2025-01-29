@@ -5,7 +5,7 @@
     </g>
     <g id="label_bgs">
         <path d="M.3 16h29.4v16H0z" fill="#c91847"/>
-        <g id="placeholder_label_bgs" style="xdisplay:none;">
+        <g id="placeholder_label_bgs" style="display:none;">
             <path d="M.3 36h74.4v12H0z" fill="#cccccc"/>
             <path d="M.3 208h74.4v12H0z" fill="#cccccc"/>
         </g>

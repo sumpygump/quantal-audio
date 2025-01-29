@@ -158,27 +158,32 @@ struct DaisyChannelVu : Module {
 struct DaisyChannelVuWidget : ModuleWidget {
     DaisyChannelVuWidget(DaisyChannelVu *module) {
         setModule(module);
-        setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/DaisyChannelVu.svg")));
+        setPanel(
+            createPanel(
+                asset::plugin(pluginInstance, "res/DaisyChannelVu.svg"),
+                asset::plugin(pluginInstance, "res/DaisyChannelVu-dark.svg")
+            )
+        );
 
         // Screws
-        addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
-        addChild(createWidget<ScrewSilver>(Vec(0, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+        addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, 0)));
+        addChild(createWidget<ThemedScrew>(Vec(0, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
         // Link lights
-        addChild(createLightCentered<TinyLight<YellowLight>>(Vec(RACK_GRID_WIDTH / 2 - 3, 361.0f), module, DaisyChannelVu::LINK_LIGHT_L));
-        addChild(createLightCentered<TinyLight<YellowLight>>(Vec(RACK_GRID_WIDTH / 2 + 3, 361.0f), module, DaisyChannelVu::LINK_LIGHT_R));
+        addChild(createLightCentered<TinyLight<YellowLight >> (Vec(RACK_GRID_WIDTH / 2 - 3, 361.0f), module, DaisyChannelVu::LINK_LIGHT_L));
+        addChild(createLightCentered<TinyLight<YellowLight >> (Vec(RACK_GRID_WIDTH / 2 + 3, 361.0f), module, DaisyChannelVu::LINK_LIGHT_R));
 
         for (int i = 0; i < VU_LIGHT_COUNT; i++) {
-            addChild(createLightCentered<VCVSliderLight<GreenLight>>(Vec(RACK_GRID_WIDTH / 2 - 3.f, 339.f - i * 7), module, DaisyChannelVu::VU_LIGHTS_L + i));
-            addChild(createLightCentered<VCVSliderLight<GreenLight>>(Vec(RACK_GRID_WIDTH / 2 + 3.f, 339.f - i * 7), module, DaisyChannelVu::VU_LIGHTS_R + i));
+            addChild(createLightCentered<VCVSliderLight<GreenLight >> (Vec(RACK_GRID_WIDTH / 2 - 3.f, 339.f - i * 7), module, DaisyChannelVu::VU_LIGHTS_L + i));
+            addChild(createLightCentered<VCVSliderLight<GreenLight >> (Vec(RACK_GRID_WIDTH / 2 + 3.f, 339.f - i * 7), module, DaisyChannelVu::VU_LIGHTS_R + i));
         }
         for (int i = VU_LIGHT_COUNT; i < VU_LIGHT_COUNT + 8; i++) {
-            addChild(createLightCentered<VCVSliderLight<YellowLight>>(Vec(RACK_GRID_WIDTH / 2 - 3.f, 339.f - i * 7), module, DaisyChannelVu::VU_LIGHTS_L + i));
-            addChild(createLightCentered<VCVSliderLight<YellowLight>>(Vec(RACK_GRID_WIDTH / 2 + 3.f, 339.f - i * 7), module, DaisyChannelVu::VU_LIGHTS_R + i));
+            addChild(createLightCentered<VCVSliderLight<YellowLight >> (Vec(RACK_GRID_WIDTH / 2 - 3.f, 339.f - i * 7), module, DaisyChannelVu::VU_LIGHTS_L + i));
+            addChild(createLightCentered<VCVSliderLight<YellowLight >> (Vec(RACK_GRID_WIDTH / 2 + 3.f, 339.f - i * 7), module, DaisyChannelVu::VU_LIGHTS_R + i));
         }
         for (int i = VU_LIGHT_COUNT + 8; i < VU_LIGHT_COUNT + 12; i++) {
-            addChild(createLightCentered<VCVSliderLight<RedLight>>(Vec(RACK_GRID_WIDTH / 2 - 3.f, 339.f - i * 7), module, DaisyChannelVu::VU_LIGHTS_L + i));
-            addChild(createLightCentered<VCVSliderLight<RedLight>>(Vec(RACK_GRID_WIDTH / 2 + 3.f, 339.f - i * 7), module, DaisyChannelVu::VU_LIGHTS_R + i));
+            addChild(createLightCentered<VCVSliderLight<RedLight >> (Vec(RACK_GRID_WIDTH / 2 - 3.f, 339.f - i * 7), module, DaisyChannelVu::VU_LIGHTS_L + i));
+            addChild(createLightCentered<VCVSliderLight<RedLight >> (Vec(RACK_GRID_WIDTH / 2 + 3.f, 339.f - i * 7), module, DaisyChannelVu::VU_LIGHTS_R + i));
         }
     }
 };

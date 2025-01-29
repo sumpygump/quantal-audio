@@ -94,26 +94,31 @@ struct UnityMix : Module {
 struct UnityMixWidget : ModuleWidget {
     UnityMixWidget(UnityMix *module) {
         setModule(module);
-        setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/UnityMix.svg")));
+        setPanel(
+            createPanel(
+                asset::plugin(pluginInstance, "res/UnityMix.svg"),
+                asset::plugin(pluginInstance, "res/UnityMix-dark.svg")
+            )
+        );
 
         // Screws
-        addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
-        addChild(createWidget<ScrewSilver>(Vec(0, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+        addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, 0)));
+        addChild(createWidget<ThemedScrew>(Vec(0, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
         // Connect switch
         addParam(createParam<CKSS>(Vec(RACK_GRID_WIDTH - 7.0, 182.0), module, UnityMix::CONNECT_PARAM));
 
         // Group A
-        addInput(createInput<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 50.0), module, UnityMix::CH_INPUT + 0));
-        addInput(createInput<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 78.0), module, UnityMix::CH_INPUT + 1));
-        addInput(createInput<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 106.0), module, UnityMix::CH_INPUT + 2));
-        addOutput(createOutput<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 148.0), module, UnityMix::CH_OUTPUT + 0));
+        addInput(createInput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 50.0), module, UnityMix::CH_INPUT + 0));
+        addInput(createInput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 78.0), module, UnityMix::CH_INPUT + 1));
+        addInput(createInput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 106.0), module, UnityMix::CH_INPUT + 2));
+        addOutput(createOutput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 148.0), module, UnityMix::CH_OUTPUT + 0));
 
         // Group B
-        addInput(createInput<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 222.0), module, UnityMix::CH_INPUT + 3));
-        addInput(createInput<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 250.0), module, UnityMix::CH_INPUT + 4));
-        addInput(createInput<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 278.0), module, UnityMix::CH_INPUT + 5));
-        addOutput(createOutput<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 320.0), module, UnityMix::CH_OUTPUT + 1));
+        addInput(createInput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 222.0), module, UnityMix::CH_INPUT + 3));
+        addInput(createInput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 250.0), module, UnityMix::CH_INPUT + 4));
+        addInput(createInput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 278.0), module, UnityMix::CH_INPUT + 5));
+        addOutput(createOutput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 320.0), module, UnityMix::CH_OUTPUT + 1));
     }
 };
 

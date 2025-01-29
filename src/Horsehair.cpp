@@ -274,17 +274,22 @@ struct Horsehair : Module {
 struct HorsehairWidget : ModuleWidget {
     HorsehairWidget(Horsehair *module) {
         setModule(module);
-        setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/Horsehair.svg")));
+        setPanel(
+            createPanel(
+                asset::plugin(pluginInstance, "res/Horsehair.svg"),
+                asset::plugin(pluginInstance, "res/Horsehair-dark.svg")
+            )
+        );
 
         // Screws
-        addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
-        addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
-        addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
-        addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+        addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, 0)));
+        addChild(createWidget<ThemedScrew>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
+        addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+        addChild(createWidget<ThemedScrew>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
-        // Pitch & CV
+        // Pitch & CThemedV
         addParam(createParam<RoundSmallBlackKnob>(Vec(RACK_GRID_WIDTH * 4 + 3, 50.0), module, Horsehair::PITCH_PARAM));
-        addInput(createInput<PJ301MPort>(Vec(RACK_GRID_WIDTH + 3, 50.0), module, Horsehair::PITCH_INPUT));
+        addInput(createInput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH + 3, 50.0), module, Horsehair::PITCH_INPUT));
 
         // Octave
         addParam(createParam<RoundBlackSnapKnob>(Vec(RACK_GRID_WIDTH, 93.0), module, Horsehair::OCTAVE_PARAM + 0));
@@ -293,22 +298,22 @@ struct HorsehairWidget : ModuleWidget {
         // Shape
         addParam(createParam<RoundBlackKnob>(Vec(RACK_GRID_WIDTH, 142.0), module, Horsehair::SHAPE_PARAM + 0));
         addParam(createParam<RoundBlackKnob>(Vec(RACK_GRID_WIDTH * 4, 142.0), module, Horsehair::SHAPE_PARAM + 1));
-        addInput(createInput<PJ301MPort>(Vec(RACK_GRID_WIDTH - 11.5, 172.0), module, Horsehair::SHAPE_CV_INPUT + 0));
-        addInput(createInput<PJ301MPort>(Vec(RACK_GRID_WIDTH * 4 + 16.5, 172.0), module, Horsehair::SHAPE_CV_INPUT + 1));
+        addInput(createInput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 11.5, 172.0), module, Horsehair::SHAPE_CV_INPUT + 0));
+        addInput(createInput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH * 4 + 16.5, 172.0), module, Horsehair::SHAPE_CV_INPUT + 1));
 
         // Pulse width
         addParam(createParam<RoundBlackKnob>(Vec(RACK_GRID_WIDTH, 215.0), module, Horsehair::PW_PARAM + 0));
         addParam(createParam<RoundBlackKnob>(Vec(RACK_GRID_WIDTH * 4, 215.0), module, Horsehair::PW_PARAM + 1));
-        addInput(createInput<PJ301MPort>(Vec(RACK_GRID_WIDTH - 11.5, 245.0), module, Horsehair::PW_CV_INPUT + 0));
-        addInput(createInput<PJ301MPort>(Vec(RACK_GRID_WIDTH * 4 + 16.5, 245.0), module, Horsehair::PW_CV_INPUT + 1));
+        addInput(createInput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 11.5, 245.0), module, Horsehair::PW_CV_INPUT + 0));
+        addInput(createInput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH * 4 + 16.5, 245.0), module, Horsehair::PW_CV_INPUT + 1));
 
         // Osc Mix
         addParam(createParam<RoundLargeBlackKnob>(Vec(RACK_GRID_WIDTH * 3.5 - (38.0 / 2), 264.0), module, Horsehair::MIX_PARAM));
-        addInput(createInput<PJ301MPort>(Vec(RACK_GRID_WIDTH - 8, 277.0), module, Horsehair::MIX_CV_INPUT));
+        addInput(createInput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 8, 277.0), module, Horsehair::MIX_CV_INPUT));
 
         // Output
-        addOutput(createOutput<PJ301MPort>(Vec(RACK_GRID_WIDTH + 3, 320.0), module, Horsehair::MIX_OUTPUT));
-        addOutput(createOutput<PJ301MPort>(Vec(RACK_GRID_WIDTH * 4 + 3, 320.0), module, Horsehair::SIN_OUTPUT));
+        addOutput(createOutput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH + 3, 320.0), module, Horsehair::MIX_OUTPUT));
+        addOutput(createOutput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH * 4 + 3, 320.0), module, Horsehair::SIN_OUTPUT));
     }
 };
 

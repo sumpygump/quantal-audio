@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="30" height="380">
+    <g id="base">
+        <path d="M0 0h30v380H0z" fill="#171717"/>
+        <path d="M.3.3h29.4v379.4H0z" fill="#2a2a2a"/>
+    </g>
+    <g id="label_bgs">
+        <path d="M.3 16h29.4v16H0z" fill="#c91847"/>
+        <g id="placeholder_label_bgs" style="display:none;">
+            <path d="M.3 36h74.4v12H0z" fill="#cccccc"/>
+            <path d="M.3 208h74.4v12H0z" fill="#cccccc"/>
+        </g>
+    </g>
+    <g id="plug_outlines">
+        <rect x="0.75" y="277" width="28.5" height="66" rx="4" ry="4" fill="#ededed"/>
+        <rect x="0.00" y="346" width="29.25" height="20" fill="#1994b3"/>
+    </g>
+    <g id="text_labels">
+        <text id="heading" x="0" y="28" style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:'Envy Code R';-inkscape-font-specification:'Envy Code R';letter-spacing:0px;word-spacing:0px;fill: #ffffff;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;">
+            <tspan x="5" y="28" style="font-size: 12.5px;">AUX</tspan>
+        </text>
+        <text id="small_labels" x="0" y="46" style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Envy Code R';-inkscape-font-specification:'Envy Code R';letter-spacing:0px;word-spacing:0px;fill: #f0f0f0;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;">
+            <tspan x="4" y="42" style="font-size: 8px;">GROUP</tspan>
+            <tspan x="18" y="83" style="font-size: 8px;">1</tspan>
+            <tspan x="18" y="93" style="font-size: 8px;">2</tspan>
+        </text>
+        <text id="small_labels_white" x="0" y="262" style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Envy Code R';-inkscape-font-specification:'Envy Code R';letter-spacing:0px;word-spacing:0px;fill: #171717;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;">
+            <tspan x="9" y="287" style="font-size: 8px;">OUT</tspan>
+            <tspan x="4" y="356" style="font-size: 8px;">DAISY</tspan>
+        </text>
+    </g>
+</svg>

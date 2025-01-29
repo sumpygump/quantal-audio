@@ -216,25 +216,30 @@ struct DaisyChannelSends2 : Module {
 struct DaisyChannelSendsWidget2 : ModuleWidget {
     DaisyChannelSendsWidget2(DaisyChannelSends2 *module) {
         setModule(module);
-        setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/DaisyChannelSends2.svg")));
+        setPanel(
+            createPanel(
+                asset::plugin(pluginInstance, "res/DaisyChannelSends2.svg"),
+                asset::plugin(pluginInstance, "res/DaisyChannelSends2-dark.svg")
+            )
+        );
 
         // Screws
-        addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
-        addChild(createWidget<ScrewSilver>(Vec(0, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+        addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, 0)));
+        addChild(createWidget<ThemedScrew>(Vec(0, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
         // Switch
         //addParam(createLightParamCentered<VCVLightBezel<>>(Vec(RACK_GRID_WIDTH - 0, 57.5f), module, DaisyChannelSends2::GROUP_PARAM, DaisyChannelSends2::GROUP_BTN_LIGHT));
-        addParam(createLightParamCentered<VCVLightButton<MediumSimpleLight<WhiteLight>>>(Vec(RACK_GRID_WIDTH - 0, 57.5f), module, DaisyChannelSends2::GROUP_PARAM, DaisyChannelSends2::GROUP_BTN_LIGHT));
-        addChild(createLightCentered<SmallLight<BlueLight>>(Vec(RACK_GRID_WIDTH - 2, 80.0f), module, DaisyChannelSends2::GROUP1_LIGHT));
-        addChild(createLightCentered<SmallLight<BlueLight>>(Vec(RACK_GRID_WIDTH - 2, 90.0f), module, DaisyChannelSends2::GROUP2_LIGHT));
+        addParam(createLightParamCentered<VCVLightButton<MediumSimpleLight<WhiteLight >>> (Vec(RACK_GRID_WIDTH - 0, 57.5f), module, DaisyChannelSends2::GROUP_PARAM, DaisyChannelSends2::GROUP_BTN_LIGHT));
+        addChild(createLightCentered<SmallLight<BlueLight >> (Vec(RACK_GRID_WIDTH - 2, 80.0f), module, DaisyChannelSends2::GROUP1_LIGHT));
+        addChild(createLightCentered<SmallLight<BlueLight >> (Vec(RACK_GRID_WIDTH - 2, 90.0f), module, DaisyChannelSends2::GROUP2_LIGHT));
 
         // Channel Output
-        addOutput(createOutput<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 290.0), module, DaisyChannelSends2::CH_OUTPUT_1));
-        addOutput(createOutput<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 316.0), module, DaisyChannelSends2::CH_OUTPUT_2));
+        addOutput(createOutput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 290.0), module, DaisyChannelSends2::CH_OUTPUT_1));
+        addOutput(createOutput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 316.0), module, DaisyChannelSends2::CH_OUTPUT_2));
 
         // Link lights
-        addChild(createLightCentered<TinyLight<YellowLight>>(Vec(RACK_GRID_WIDTH - 4, 361.0f), module, DaisyChannelSends2::LINK_LIGHT_L));
-        addChild(createLightCentered<TinyLight<YellowLight>>(Vec(RACK_GRID_WIDTH + 4, 361.0f), module, DaisyChannelSends2::LINK_LIGHT_R));
+        addChild(createLightCentered<TinyLight<YellowLight >> (Vec(RACK_GRID_WIDTH - 4, 361.0f), module, DaisyChannelSends2::LINK_LIGHT_L));
+        addChild(createLightCentered<TinyLight<YellowLight >> (Vec(RACK_GRID_WIDTH + 4, 361.0f), module, DaisyChannelSends2::LINK_LIGHT_R));
     }
 };
 
