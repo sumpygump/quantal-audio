@@ -72,11 +72,11 @@ struct DaisyMaster2 : Module {
         if (!muted) {
             // Get daisy-chained data from left-side linked module
             if (leftExpander.module && (
-                leftExpander.module->model == modelDaisyChannel2
-                || leftExpander.module->model == modelDaisyChannelVu
-                || leftExpander.module->model == modelDaisyChannelSends2
-            )) {
-                DaisyMessage *msgFromExpander = (DaisyMessage*)(leftExpander.consumerMessage);
+                        leftExpander.module->model == modelDaisyChannel2
+                        || leftExpander.module->model == modelDaisyChannelVu
+                        || leftExpander.module->model == modelDaisyChannelSends2
+                    )) {
+                DaisyMessage *msgFromExpander = (DaisyMessage *)(leftExpander.consumerMessage);
 
                 channels = msgFromExpander->channels;
                 for (int c = 0; c < channels; c++) {

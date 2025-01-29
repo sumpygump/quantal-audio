@@ -82,15 +82,15 @@ struct DaisyChannel2 : Module {
         }
 
         // aux 1
-	    json_t *aux1_send_amtJ = json_object_get(rootJ, "aux1_send_amt");
+        json_t *aux1_send_amtJ = json_object_get(rootJ, "aux1_send_amt");
         if (aux1_send_amtJ) {
-		    aux1_send_amt = std::max(0.0f, (float) json_real_value(aux1_send_amtJ));
+            aux1_send_amt = std::max(0.0f, (float) json_real_value(aux1_send_amtJ));
         }
 
         // aux 2
-	    json_t *aux2_send_amtJ = json_object_get(rootJ, "aux2_send_amt");
+        json_t *aux2_send_amtJ = json_object_get(rootJ, "aux2_send_amt");
         if (aux2_send_amtJ) {
-		    aux2_send_amt = std::max(0.0f, (float) json_real_value(aux2_send_amtJ));
+            aux2_send_amt = std::max(0.0f, (float) json_real_value(aux2_send_amtJ));
         }
     }
 
@@ -149,10 +149,10 @@ struct DaisyChannel2 : Module {
 
         // Get daisy-chained data from left-side linked module
         if (leftExpander.module && (
-            leftExpander.module->model == modelDaisyChannel2
-            || leftExpander.module->model == modelDaisyChannelVu
-            || leftExpander.module->model == modelDaisyChannelSends2
-        )) {
+                    leftExpander.module->model == modelDaisyChannel2
+                    || leftExpander.module->model == modelDaisyChannelVu
+                    || leftExpander.module->model == modelDaisyChannelSends2
+                )) {
             DaisyMessage *msgFromModule = (DaisyMessage *)(leftExpander.consumerMessage);
             chainChannels = msgFromModule->channels;
             for (int c = 0; c < chainChannels; c++) {
@@ -181,11 +181,11 @@ struct DaisyChannel2 : Module {
 
         // Set daisy-chained output to right-side linked module
         if (rightExpander.module && (
-            rightExpander.module->model == modelDaisyMaster2
-            || rightExpander.module->model == modelDaisyChannel2
-            || rightExpander.module->model == modelDaisyChannelVu
-            || rightExpander.module->model == modelDaisyChannelSends2
-        )) {
+                    rightExpander.module->model == modelDaisyMaster2
+                    || rightExpander.module->model == modelDaisyChannel2
+                    || rightExpander.module->model == modelDaisyChannelVu
+                    || rightExpander.module->model == modelDaisyChannelSends2
+                )) {
             DaisyMessage *msgToModule = (DaisyMessage *)(rightExpander.module->leftExpander.producerMessage);
 
             // Write this module's output along to single voltages pipe
@@ -239,10 +239,10 @@ struct DaisyChannel2 : Module {
 
 // Struct for keeping track of the value in the right click menu for the aux sends
 struct SendQuantity : Quantity {
-    DaisyChannel2* _module;
+    DaisyChannel2 *_module;
     int _group;
 
-    SendQuantity(DaisyChannel2* m, int g) : _module(m), _group(g) {}
+    SendQuantity(DaisyChannel2 *m, int g) : _module(m), _group(g) {}
 
     void setValue(float value) override {
         value = clamp(value, getMinValue(), getMaxValue());
@@ -264,20 +264,32 @@ struct SendQuantity : Quantity {
         return getDefaultValue();
     }
 
-    float getMinValue() override { return 0.0f; }
-    float getMaxValue() override { return 1.0f; }
-    float getDefaultValue() override { return 0.f; }
-    float getDisplayValue() override { return roundf(100.0f * getValue()); }
-    void setDisplayValue(float displayValue) override { setValue(displayValue / 100.0f); }
+    float getMinValue() override {
+        return 0.0f;
+    }
+    float getMaxValue() override {
+        return 1.0f;
+    }
+    float getDefaultValue() override {
+        return 0.f;
+    }
+    float getDisplayValue() override {
+        return roundf(100.0f * getValue());
+    }
+    void setDisplayValue(float displayValue) override {
+        setValue(displayValue / 100.0f);
+    }
     std::string getLabel() override {
         return string::f("Aux Group %d Send Amt", _group);
     }
-    std::string getUnit() override { return "%"; }
+    std::string getUnit() override {
+        return "%";
+    }
 };
 
 template<class Q, int g>
 struct DaisyMenuSlider : ui::Slider {
-    DaisyMenuSlider(DaisyChannel2* module) {
+    DaisyMenuSlider(DaisyChannel2 *module) {
         quantity = new Q(module, g);
         box.size.x = 200.0f;
     }
@@ -318,8 +330,8 @@ struct DaisyChannelWidget2 : ModuleWidget {
         addChild(createLightCentered<TinyLight<BlueLight>>(Vec(RACK_GRID_WIDTH - 10, 11.0f), module, DaisyChannel2::AUX2_LIGHT));
     }
 
-    void appendContextMenu(Menu* menu) override {
-        DaisyChannel2* module = dynamic_cast<DaisyChannel2*>(this->module);
+    void appendContextMenu(Menu *menu) override {
+        DaisyChannel2 *module = dynamic_cast<DaisyChannel2 *>(this->module);
         assert(module);
 
         menu->addChild(new MenuSeparator);

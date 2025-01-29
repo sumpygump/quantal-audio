@@ -94,10 +94,10 @@ struct DaisyChannelSends2 : Module {
 
         // Get daisy-chained data from left-side linked module
         if (leftExpander.module && (
-            leftExpander.module->model == modelDaisyChannel2
-            || leftExpander.module->model == modelDaisyChannelVu
-            || leftExpander.module->model == modelDaisyChannelSends2
-        )) {
+                    leftExpander.module->model == modelDaisyChannel2
+                    || leftExpander.module->model == modelDaisyChannelVu
+                    || leftExpander.module->model == modelDaisyChannelSends2
+                )) {
             DaisyMessage *msgFromModule = (DaisyMessage *)(leftExpander.consumerMessage);
 
             chainChannels = msgFromModule->channels;
@@ -139,11 +139,11 @@ struct DaisyChannelSends2 : Module {
 
         // Set daisy-chained output to right-side linked module
         if (rightExpander.module && (
-            rightExpander.module->model == modelDaisyMaster2
-            || rightExpander.module->model == modelDaisyChannel2
-            || rightExpander.module->model == modelDaisyChannelVu
-            || rightExpander.module->model == modelDaisyChannelSends2
-        )) {
+                    rightExpander.module->model == modelDaisyMaster2
+                    || rightExpander.module->model == modelDaisyChannel2
+                    || rightExpander.module->model == modelDaisyChannelVu
+                    || rightExpander.module->model == modelDaisyChannelSends2
+                )) {
             DaisyMessage *msgToModule = (DaisyMessage *)(rightExpander.module->leftExpander.producerMessage);
 
             msgToModule->channels = chainChannels;
