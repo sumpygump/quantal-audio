@@ -9,6 +9,7 @@ void init(Plugin *p) {
     p->addModel(modelMasterMixer);
     p->addModel(modelBufferedMult);
     p->addModel(modelUnityMix);
+    p->addModel(modelDaisyBlank);
     p->addModel(modelDaisyChannel);
     p->addModel(modelDaisyChannel2);
     p->addModel(modelDaisyChannelSends2);

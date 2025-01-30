@@ -97,6 +97,7 @@ struct DaisyChannelSends2 : Module {
                     leftExpander.module->model == modelDaisyChannel2
                     || leftExpander.module->model == modelDaisyChannelVu
                     || leftExpander.module->model == modelDaisyChannelSends2
+                    || leftExpander.module->model == modelDaisyBlank
                 )) {
             DaisyMessage *msgFromModule = (DaisyMessage *)(leftExpander.consumerMessage);
 
@@ -143,6 +144,7 @@ struct DaisyChannelSends2 : Module {
                     || rightExpander.module->model == modelDaisyChannel2
                     || rightExpander.module->model == modelDaisyChannelVu
                     || rightExpander.module->model == modelDaisyChannelSends2
+                    || rightExpander.module->model == modelDaisyBlank
                 )) {
             DaisyMessage *msgToModule = (DaisyMessage *)(rightExpander.module->leftExpander.producerMessage);
 

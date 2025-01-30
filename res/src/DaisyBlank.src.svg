@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="30" height="380">
+    <g id="base">
+        <path d="M0 0h30v380H0z" fill="#ababab"/>
+        <path d="M.3.3h29.4v379.4H0z" fill="#e6e6e6"/>
+    </g>
+    <g id="label_bgs">
+        <path d="M.3 16h29.4v16H0z" fill="#c91847"/>
+    </g>
+    <g id="lines">
+        <path style="fill:none;stroke:#868686;stroke-width:.7;" d="M6 54v270"/>
+        <path style="fill:none;stroke:#868686;stroke-width:.7;" d="M23 54v270"/>
+    </g>
+    <g id="plug_outlines">
+        <rect x="0.00" y="346" width="29.25" height="20" fill="#1994b3"/>
+    </g>
+</svg>

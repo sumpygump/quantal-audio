@@ -67,6 +67,12 @@
       "tags": ["Mixer", "Polyphonic", "Expander"]
     },
     {
+      "slug": "DaisyBlank",
+      "name": "Daisy Mix Blank Separator | 2HP",
+      "description": "Modular mixer blank separator - proximity daisy chainable",
+      "tags": ["Blank", "Expander"]
+    },
+    {
       "slug": "DaisyMaster2",
       "name": "Daisy Mix Master STEREO | 3HP",
       "description": "Modular mixer master - proximity daisy chain",

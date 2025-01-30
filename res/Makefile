@@ -14,7 +14,7 @@
 
 INKSCAPE=inkscape
 SVGO=svgo
-SVGS=BufferedMult-dark.svg BufferedMult.svg DaisyChannel-dark.svg DaisyChannel.svg DaisyChannel2-dark.svg DaisyChannel2.svg DaisyChannelSends2-dark.svg DaisyChannelSends2.svg DaisyChannelVu-dark.svg DaisyChannelVu.svg DaisyMaster-dark.svg DaisyMaster.svg DaisyMaster2-dark.svg DaisyMaster2.svg Horsehair-dark.svg Horsehair.svg MasterMixer-dark.svg MasterMixer.svg UnityMix-dark.svg UnityMix.svg
+SVGS=BufferedMult-dark.svg BufferedMult.svg DaisyBlank-dark.svg DaisyBlank.svg DaisyChannel-dark.svg DaisyChannel.svg DaisyChannel2-dark.svg DaisyChannel2.svg DaisyChannelSends2-dark.svg DaisyChannelSends2.svg DaisyChannelVu-dark.svg DaisyChannelVu.svg DaisyMaster-dark.svg DaisyMaster.svg DaisyMaster2-dark.svg DaisyMaster2.svg Horsehair-dark.svg Horsehair.svg MasterMixer-dark.svg MasterMixer.svg UnityMix-dark.svg UnityMix.svg
 
 all: $(SVGS)
 

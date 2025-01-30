@@ -94,6 +94,11 @@ struct DaisyChannel2 : Module {
         }
     }
 
+    void onReset() override {
+        aux1_send_amt = 0.0f;
+        aux2_send_amt = 0.0f;
+    }
+
     void process(const ProcessArgs &args) override {
         muted = params[MUTE_PARAM].getValue() > 0.f;
 
@@ -152,6 +157,7 @@ struct DaisyChannel2 : Module {
                     leftExpander.module->model == modelDaisyChannel2
                     || leftExpander.module->model == modelDaisyChannelVu
                     || leftExpander.module->model == modelDaisyChannelSends2
+                    || leftExpander.module->model == modelDaisyBlank
                 )) {
             DaisyMessage *msgFromModule = (DaisyMessage *)(leftExpander.consumerMessage);
             chainChannels = msgFromModule->channels;
@@ -185,6 +191,7 @@ struct DaisyChannel2 : Module {
                     || rightExpander.module->model == modelDaisyChannel2
                     || rightExpander.module->model == modelDaisyChannelVu
                     || rightExpander.module->model == modelDaisyChannelSends2
+                    || rightExpander.module->model == modelDaisyBlank
                 )) {
             DaisyMessage *msgToModule = (DaisyMessage *)(rightExpander.module->leftExpander.producerMessage);
 

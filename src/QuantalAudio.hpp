@@ -10,6 +10,7 @@ extern Plugin *pluginInstance;
 extern Model *modelMasterMixer;
 extern Model *modelBufferedMult;
 extern Model *modelUnityMix;
+extern Model *modelDaisyBlank;
 extern Model *modelDaisyChannel;
 extern Model *modelDaisyChannel2;
 extern Model *modelDaisyChannelSends2;

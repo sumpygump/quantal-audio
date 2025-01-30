@@ -75,6 +75,7 @@ struct DaisyMaster2 : Module {
                         leftExpander.module->model == modelDaisyChannel2
                         || leftExpander.module->model == modelDaisyChannelVu
                         || leftExpander.module->model == modelDaisyChannelSends2
+                        || leftExpander.module->model == modelDaisyBlank
                     )) {
                 DaisyMessage *msgFromExpander = (DaisyMessage *)(leftExpander.consumerMessage);
 
