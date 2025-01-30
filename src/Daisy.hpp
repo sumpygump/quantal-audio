@@ -24,6 +24,10 @@ struct DaisyMessage {
     int aux2_channels = 1;
     float aux2_voltages_l[16] = {};
     float aux2_voltages_r[16] = {};
+
+    // Meta data about this daisy chain
+    float first_pos_x = 0.0f;
+    float first_pos_y = 0.0f;
 };
 
 #endif

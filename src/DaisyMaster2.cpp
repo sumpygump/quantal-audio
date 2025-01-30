@@ -26,6 +26,17 @@ struct DaisyMaster2 : Module {
     float link_l = 0.f;
     dsp::ClockDivider lightDivider;
 
+    enum DaisyModelIds {
+        CHANNEL_2,
+        CHANNEL_VU,
+        CHANNEL_AUX,
+        CHANNEL_SEP,
+        NUM_MODELS
+    };
+    Model *daisyModels[NUM_MODELS];
+    ModuleWidget *thisWidget;
+    int masterChannelStripCount = 0;
+
     DaisyMessage daisyMessages[2][1];
 
     DaisyMaster2() {
@@ -44,6 +55,13 @@ struct DaisyMaster2 : Module {
         leftExpander.consumerMessage = &daisyMessages[1];
 
         lightDivider.setDivision(512);
+
+        // Store all the related daisy models
+        INFO("DaisyMaster2: Loading daisy plugin models for master context functions");
+        daisyModels[CHANNEL_2] = rack::plugin::getModel("QuantalAudio", "DaisyChannel2");
+        daisyModels[CHANNEL_VU] = rack::plugin::getModel("QuantalAudio", "DaisyChannelVu");
+        daisyModels[CHANNEL_AUX] = rack::plugin::getModel("QuantalAudio", "DaisyChannelSends2");
+        daisyModels[CHANNEL_SEP] = rack::plugin::getModel("QuantalAudio", "DaisyBlank");
     }
 
     json_t *dataToJson() override {
@@ -60,6 +78,10 @@ struct DaisyMaster2 : Module {
         json_t *mutedJ = json_object_get(rootJ, "muted");
         if (mutedJ)
             muted = json_is_true(mutedJ);
+    }
+
+    void setWidget(ModuleWidget *strip) {
+        thisWidget = strip;
     }
 
     void process(const ProcessArgs &args) override {
@@ -128,6 +150,104 @@ struct DaisyMaster2 : Module {
         if (lightDivider.process()) {
             lights[MUTE_LIGHT].value = (muted);
             lights[LINK_LIGHT_L].setBrightness(link_l);
+
+            // INFO("MODULE NOW %f", thisWidget->box.pos.x);
+        }
+    }
+
+    Vec spawnModule(Vec pos, Model* model) {
+        Module *newModule = model->createModule();
+
+        // Create module widget
+        ModuleWidget *newWidget = model->createModuleWidget(newModule);
+        if (!newWidget) {
+            WARN("Cannot spawn module %s.", model->slug.c_str());
+            return pos;
+        }
+        APP->engine->addModule(newModule);
+        APP->scene->rack->updateModuleOldPositions();
+        APP->scene->rack->setModulePosNearest(newWidget, Vec(pos.x, pos.y));
+        APP->scene->rack->addModule(newWidget);
+
+        // Record history
+        history::ModuleAdd *h = new history::ModuleAdd;
+        h->name = "create module";
+        h->setModule(newWidget);
+        APP->history->push(h);
+
+        INFO("DaisyMaster2 spawned module %s.", model->slug.c_str());
+        return newWidget->box.pos;
+    }
+
+    void addChannelStrips(ModuleWidget* parentWidget, int channelStripCount, int channelAuxCount, bool includeVuMeters) {
+        // TODO: I have an idea. Add a new value that gets passed through the
+        // daisy chain. It will be the pos of the leftmost widget.  You can
+        // find out what it is by a module that doesn't have a leftExpander.
+        // Pass that pos all the way down the chain and the master module will
+        // use that to figure out where to spawn new modules.
+
+        Vec next;
+        Vec pos = parentWidget->box.pos;
+        if (masterChannelStripCount == 0) {
+            next = pos;
+        } else {
+            int distance = 30 * masterChannelStripCount;
+            Rect box = parentWidget->box;
+            next = box.pos.minus(Vec(distance, 0));
+        }
+
+        if (includeVuMeters) {
+            // Add return channel strips
+            for (int i = 0; i < channelAuxCount; i++) {
+                next = spawnModule(next, daisyModels[CHANNEL_VU]);
+                masterChannelStripCount++;
+                next = spawnModule(next, daisyModels[CHANNEL_2]);
+                masterChannelStripCount++;
+            }
+
+            // Add aux send channel strips
+            for (int i = 0; i < channelAuxCount; i++) {
+                next = spawnModule(next, daisyModels[CHANNEL_AUX]);
+                masterChannelStripCount++;
+            }
+
+            // Add a separator
+            if (channelAuxCount > 0) {
+                next = spawnModule(next, daisyModels[CHANNEL_SEP]);
+                masterChannelStripCount++;
+            }
+
+            // Add input channel strips
+            for (int i = 0; i < channelStripCount; i++) {
+                next = spawnModule(next, daisyModels[CHANNEL_VU]);
+                masterChannelStripCount++;
+                next = spawnModule(next, daisyModels[CHANNEL_2]);
+                masterChannelStripCount++;
+            }
+        } else {
+            // Add return channel strips
+            for (int i = 0; i < channelAuxCount; i++) {
+                next = spawnModule(next, daisyModels[CHANNEL_2]);
+                masterChannelStripCount++;
+            }
+
+            // Add aux send channel strips
+            for (int i = 0; i < channelAuxCount; i++) {
+                next = spawnModule(next, daisyModels[CHANNEL_AUX]);
+                masterChannelStripCount++;
+            }
+
+            // Add a separator
+            if (channelAuxCount > 0) {
+                next = spawnModule(next, daisyModels[CHANNEL_SEP]);
+                masterChannelStripCount++;
+            }
+
+            // Add input channel strips
+            for (int i = 0; i < channelStripCount; i++) {
+                next = spawnModule(next, daisyModels[CHANNEL_2]);
+                masterChannelStripCount++;
+            }
         }
     }
 };
@@ -135,7 +255,6 @@ struct DaisyMaster2 : Module {
 struct DaisyMasterWidget2 : ModuleWidget {
     DaisyMasterWidget2(DaisyMaster2 *module) {
         setModule(module);
-        setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/DaisyMaster2.svg")));
         setPanel(
             createPanel(
                 asset::plugin(pluginInstance, "res/DaisyMaster2.svg"),
@@ -162,6 +281,31 @@ struct DaisyMasterWidget2 : ModuleWidget {
 
         // Link light
         addChild(createLightCentered<TinyLight<YellowLight >> (Vec(RACK_GRID_WIDTH - 6, 361.0f), module, DaisyMaster2::LINK_LIGHT_L));
+
+        module->setWidget(this);
+    }
+
+    void appendContextMenu(Menu *menu) override {
+        //DaisyMaster2 *module = dynamic_cast<DaisyMaster2 *>(this->module);
+        //assert(module);
+        DaisyMaster2 *module = getModule<DaisyMaster2>();
+
+        menu->addChild(new MenuSeparator);
+        menu->addChild(createMenuItem("Create 2 channels", "", [ = ]() {
+            module->addChannelStrips(this, 2, 0, false);
+        }));
+        menu->addChild(createMenuItem("Create 2 channels with vu meters", "", [ = ]() {
+            module->addChannelStrips(this, 2, 0, true);
+        }));
+        menu->addChild(createMenuItem("Create 4 channels", "", [ = ]() {
+            module->addChannelStrips(this, 4, 0, false);
+        }));
+        menu->addChild(createMenuItem("Create 4 channels with vu meters", "", [ = ]() {
+            module->addChannelStrips(this, 4, 0, true);
+        }));
+        menu->addChild(createMenuItem("Create 4 channels with vu meters + aux sends", "", [ = ]() {
+            module->addChannelStrips(this, 4, 2, true);
+        }));
     }
 };
 
