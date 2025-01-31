@@ -71,7 +71,7 @@ struct DaisyBlank : Module {
                 || leftExpander.module->model == modelDaisyChannelSends2
                 || leftExpander.module->model == modelDaisyBlank
             )) {
-            DaisyMessage* msgFromModule = (DaisyMessage*)(leftExpander.consumerMessage);
+            const DaisyMessage* msgFromModule = static_cast<DaisyMessage*>(leftExpander.consumerMessage);
             chainChannels = msgFromModule->channels;
             for (int c = 0; c < chainChannels; c++) {
                 daisySignals_l[c] = msgFromModule->voltages_l[c];
@@ -105,7 +105,7 @@ struct DaisyBlank : Module {
                 || rightExpander.module->model == modelDaisyChannelSends2
                 || rightExpander.module->model == modelDaisyBlank
             )) {
-            DaisyMessage* msgToModule = (DaisyMessage*)(rightExpander.module->leftExpander.producerMessage);
+            DaisyMessage* msgToModule = static_cast<DaisyMessage*>(rightExpander.module->leftExpander.producerMessage);
 
             msgToModule->channels = chainChannels;
             for (int c = 0; c < chainChannels; c++) {
@@ -147,7 +147,7 @@ struct DaisyBlankWidget : ModuleWidget {
 
     dsp::ClockDivider uiDivider;
 
-    DaisyBlankWidget(DaisyBlank *module) {
+    explicit DaisyBlankWidget(DaisyBlank *module) {
         setModule(module);
         setPanel(
             createPanel(

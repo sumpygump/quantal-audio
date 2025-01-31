@@ -110,16 +110,13 @@ struct DaisyChannel2 : Module {
         muted = params[MUTE_PARAM].getValue() > 0.f;
 
         int channels = 1;
-        int maxChannels = 1;
         int chainChannels = 1;
         float signals_l[16] = {};
         float signals_r[16] = {};
         float daisySignals_l[16] = {};
         float daisySignals_r[16] = {};
-        int aux1Channels = 1;
         float aux1Signals_l[16] = {};
         float aux1Signals_r[16] = {};
-        int aux2Channels = 1;
         float aux2Signals_l[16] = {};
         float aux2Signals_r[16] = {};
 
@@ -129,8 +126,8 @@ struct DaisyChannel2 : Module {
 
         // Get inputs from this channel strip
         if (!muted) {
-            float gain = params[CH_LVL_PARAM].getValue();
-            float pan = params[PAN_PARAM].getValue();
+            const float gain = params[CH_LVL_PARAM].getValue();
+            const float pan = params[PAN_PARAM].getValue();
 
             channels = std::max(inputs[CH_INPUT_1].getChannels(), inputs[CH_INPUT_2].getChannels());
 
@@ -143,13 +140,13 @@ struct DaisyChannel2 : Module {
             }
 
             for (int c = 0; c < channels; c++) {
-                signals_l[c] *= std::pow(gain, 2.f) * std::cos(M_PI * (pan + 1) / 4);
-                signals_r[c] *= std::pow(gain, 2.f) * std::sin(M_PI * (pan + 1) / 4);
+                signals_l[c] *= std::cos(M_PI * (pan + 1.0) / 4.0) * std::pow(gain, 2.f);
+                signals_r[c] *= std::sin(M_PI * (pan + 1.0) / 4.0) * std::pow(gain, 2.f);
             }
 
             if (inputs[LVL_CV_INPUT].isConnected()) {
                 for (int c = 0; c < channels; c++) {
-                    float _cv = clamp(inputs[LVL_CV_INPUT].getPolyVoltage(c) / 10.f, 0.f, 1.f);
+                    const float _cv = clamp(inputs[LVL_CV_INPUT].getPolyVoltage(c) / 10.f, 0.f, 1.f);
                     signals_l[c] *= _cv;
                     signals_r[c] *= _cv;
                 }
@@ -170,20 +167,20 @@ struct DaisyChannel2 : Module {
                 || leftExpander.module->model == modelDaisyChannelSends2
                 || leftExpander.module->model == modelDaisyBlank
             )) {
-            DaisyMessage* msgFromModule = (DaisyMessage*)(leftExpander.consumerMessage);
+            const DaisyMessage* msgFromModule = static_cast<DaisyMessage*>(leftExpander.consumerMessage);
             chainChannels = msgFromModule->channels;
             for (int c = 0; c < chainChannels; c++) {
                 daisySignals_l[c] = msgFromModule->voltages_l[c];
                 daisySignals_r[c] = msgFromModule->voltages_r[c];
             }
 
-            aux1Channels = msgFromModule->aux1_channels;
+            const int aux1Channels = msgFromModule->aux1_channels;
             for (int c = 0; c < aux1Channels; c++) {
                 aux1Signals_l[c] = msgFromModule->aux1_voltages_l[c];
                 aux1Signals_r[c] = msgFromModule->aux1_voltages_r[c];
             }
 
-            aux2Channels = msgFromModule->aux2_channels;
+            const int aux2Channels = msgFromModule->aux2_channels;
             for (int c = 0; c < aux2Channels; c++) {
                 aux2Signals_l[c] = msgFromModule->aux2_voltages_l[c];
                 aux2Signals_r[c] = msgFromModule->aux2_voltages_r[c];
@@ -196,7 +193,7 @@ struct DaisyChannel2 : Module {
             link_l = 0.0f;
         }
 
-        maxChannels = std::max(chainChannels, channels);
+        const int maxChannels = std::max(chainChannels, channels);
 
         // Set daisy-chained output to right-side linked module
         if (rightExpander.module && (
@@ -206,7 +203,7 @@ struct DaisyChannel2 : Module {
                 || rightExpander.module->model == modelDaisyChannelSends2
                 || rightExpander.module->model == modelDaisyBlank
             )) {
-            DaisyMessage* msgToModule = (DaisyMessage*)(rightExpander.module->leftExpander.producerMessage);
+            DaisyMessage* msgToModule = static_cast<DaisyMessage*>(rightExpander.module->leftExpander.producerMessage);
 
             // Write this module's output along to single voltages pipe
             msgToModule->single_channels = channels;
@@ -312,7 +309,7 @@ struct SendQuantity : Quantity {
 
 template<class Q, int g>
 struct DaisyMenuSlider : ui::Slider {
-    DaisyMenuSlider(DaisyChannel2 *module) {
+    explicit DaisyMenuSlider(DaisyChannel2 *module) {
         quantity = new Q(module, g);
         box.size.x = 200.0f;
     }
@@ -325,7 +322,7 @@ struct DaisyChannelWidget2 : ModuleWidget {
 
     dsp::ClockDivider uiDivider;
 
-    DaisyChannelWidget2(DaisyChannel2 *module) {
+    explicit DaisyChannelWidget2(DaisyChannel2 *module) {
         setModule(module);
         setPanel(
             createPanel(
@@ -339,18 +336,18 @@ struct DaisyChannelWidget2 : ModuleWidget {
         addChild(createWidget<ThemedScrew>(Vec(0, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
         // Channel Input/Output
-        addInput(createInput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 45.0), module, DaisyChannel2::CH_INPUT_1));
-        addInput(createInput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 71.0), module, DaisyChannel2::CH_INPUT_2));
-        addOutput(createOutput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 290.0), module, DaisyChannel2::CH_OUTPUT_1));
-        addOutput(createOutput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 316.0), module, DaisyChannel2::CH_OUTPUT_2));
+        addInput(createInput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5f, 45.0), module, DaisyChannel2::CH_INPUT_1));
+        addInput(createInput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5f, 71.0), module, DaisyChannel2::CH_INPUT_2));
+        addOutput(createOutput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5f, 290.0), module, DaisyChannel2::CH_OUTPUT_1));
+        addOutput(createOutput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5f, 316.0), module, DaisyChannel2::CH_OUTPUT_2));
 
         // Level & CV
-        addInput(createInput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 110.0), module, DaisyChannel2::LVL_CV_INPUT));
-        addParam(createParam<LEDSliderGreen>(Vec(RACK_GRID_WIDTH - 10.5, 138.4), module, DaisyChannel2::CH_LVL_PARAM));
+        addInput(createInput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5f, 110.0), module, DaisyChannel2::LVL_CV_INPUT));
+        addParam(createParam<LEDSliderGreen>(Vec(RACK_GRID_WIDTH - 10.5f, 138.4), module, DaisyChannel2::CH_LVL_PARAM));
         addParam(createParamCentered<Trimpot>(Vec(RACK_GRID_WIDTH - 0, 240.0), module, DaisyChannel2::PAN_PARAM));
 
         // Mute
-        addParam(createLightParam<VCVLightLatch<MediumSimpleLight<RedLight>>>(Vec(RACK_GRID_WIDTH - 9.0, 254.0), module, DaisyChannel2::MUTE_PARAM, DaisyChannel2::MUTE_LIGHT));
+        addParam(createLightParam<VCVLightLatch<MediumSimpleLight<RedLight>>>(Vec(RACK_GRID_WIDTH - 9.0f, 254.0), module, DaisyChannel2::MUTE_PARAM, DaisyChannel2::MUTE_LIGHT));
 
         // Link lights
         addChild(createLightCentered<TinyLight<YellowLight>>(Vec(RACK_GRID_WIDTH - 4, 361.0f), module, DaisyChannel2::LINK_LIGHT_L));

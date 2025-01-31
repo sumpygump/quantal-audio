@@ -67,7 +67,7 @@ struct DaisyChannelSends2 : Module {
 
     void dataFromJson(json_t* rootJ) override {
         // mute
-        json_t* groupJ = json_object_get(rootJ, "group");
+        const json_t* groupJ = json_object_get(rootJ, "group");
         if (groupJ) {
             group = json_integer_value(groupJ);
         }
@@ -110,7 +110,7 @@ struct DaisyChannelSends2 : Module {
                 || leftExpander.module->model == modelDaisyChannelSends2
                 || leftExpander.module->model == modelDaisyBlank
             )) {
-            DaisyMessage* msgFromModule = (DaisyMessage*)(leftExpander.consumerMessage);
+            DaisyMessage* msgFromModule = static_cast<DaisyMessage*>(leftExpander.consumerMessage);
 
             chainChannels = msgFromModule->channels;
             for (int c = 0; c < chainChannels; c++) {
@@ -159,7 +159,7 @@ struct DaisyChannelSends2 : Module {
                 || rightExpander.module->model == modelDaisyChannelSends2
                 || rightExpander.module->model == modelDaisyBlank
             )) {
-            DaisyMessage* msgToModule = (DaisyMessage*)(rightExpander.module->leftExpander.producerMessage);
+            DaisyMessage* msgToModule = static_cast<DaisyMessage*>(rightExpander.module->leftExpander.producerMessage);
 
             msgToModule->channels = chainChannels;
             for (int c = 0; c < chainChannels; c++) {
@@ -196,7 +196,7 @@ struct DaisyChannelSends2 : Module {
         // Set this channel's output to right-side linked VU module
         if (rightExpander.module && rightExpander.module->model == modelDaisyChannelVu) {
             // Write this module's output to the single channel message
-            DaisyMessage* msgToModule = (DaisyMessage*)(rightExpander.module->leftExpander.producerMessage);
+            DaisyMessage* msgToModule = static_cast<DaisyMessage*>(rightExpander.module->leftExpander.producerMessage);
             msgToModule->single_channels = chainChannels;
             for (int c = 0; c < chainChannels; c++) {
                 msgToModule->single_voltages_l[c] = aux_l[c];
@@ -204,7 +204,7 @@ struct DaisyChannelSends2 : Module {
             }
         }
 
-        if (link_r > 0.0) {
+        if (rightExpander.module && link_r > 0.0f) {
             rightExpander.module->leftExpander.messageFlipRequested = true;
         }
 
@@ -235,7 +235,7 @@ struct DaisyChannelSendsWidget2 : ModuleWidget {
 
     dsp::ClockDivider uiDivider;
 
-    DaisyChannelSendsWidget2(DaisyChannelSends2 *module) {
+    explicit DaisyChannelSendsWidget2(DaisyChannelSends2 *module) {
         setModule(module);
         setPanel(
             createPanel(
@@ -254,8 +254,8 @@ struct DaisyChannelSendsWidget2 : ModuleWidget {
         addChild(createLightCentered<SmallLight<BlueLight>>(Vec(RACK_GRID_WIDTH - 2, 90.0f), module, DaisyChannelSends2::GROUP2_LIGHT));
 
         // Channel Output
-        addOutput(createOutput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 290.0), module, DaisyChannelSends2::CH_OUTPUT_1));
-        addOutput(createOutput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 316.0), module, DaisyChannelSends2::CH_OUTPUT_2));
+        addOutput(createOutput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5f, 290.0), module, DaisyChannelSends2::CH_OUTPUT_1));
+        addOutput(createOutput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5f, 316.0), module, DaisyChannelSends2::CH_OUTPUT_2));
 
         // Link lights
         addChild(createLightCentered<TinyLight<YellowLight>>(Vec(RACK_GRID_WIDTH - 4, 361.0f), module, DaisyChannelSends2::LINK_LIGHT_L));

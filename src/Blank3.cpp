@@ -1,7 +1,7 @@
 #include "QuantalAudio.hpp"
 
 struct Blank3Widget : ModuleWidget {
-    Blank3Widget(Module *module) {
+    explicit Blank3Widget(Module *module) {
         setModule(module);
         setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/blank-3.svg")));
 

@@ -1,10 +1,10 @@
 #include "QuantalAudio.hpp"
 #include "Daisy.hpp"
 
-static const int VU_LIGHT_COUNT = 32;
+static constexpr int VU_LIGHT_COUNT = 32;
 
 /** Returns the sum of all voltages. */
-float _getVoltageSum(int channels, float voltages[16]) {
+float getVoltageSum(const int channels, const float voltages[16]) {
     float sum = 0.f;
     for (int c = 0; c < channels; c++) {
         sum += voltages[c];
@@ -86,7 +86,7 @@ struct DaisyChannelVu : Module {
                 || leftExpander.module->model == modelDaisyMaster2
                 || leftExpander.module->model == modelDaisyBlank
             )) {
-            DaisyMessage* msgFromModule = (DaisyMessage*)(leftExpander.consumerMessage);
+            DaisyMessage* msgFromModule = static_cast<DaisyMessage*>(leftExpander.consumerMessage);
             chainChannels = msgFromModule->channels;
             for (int c = 0; c < chainChannels; c++) {
                 daisySignals_l[c] = msgFromModule->voltages_l[c];
@@ -98,8 +98,8 @@ struct DaisyChannelVu : Module {
                 signals_l[c] = msgFromModule->single_voltages_l[c];
                 signals_r[c] = msgFromModule->single_voltages_r[c];
             }
-            vuMeter[0].process(args.sampleTime, _getVoltageSum(chainChannels, signals_l) / 10.f);
-            vuMeter[1].process(args.sampleTime, _getVoltageSum(chainChannels, signals_r) / 10.f);
+            vuMeter[0].process(args.sampleTime, getVoltageSum(chainChannels, signals_l) / 10.f);
+            vuMeter[1].process(args.sampleTime, getVoltageSum(chainChannels, signals_r) / 10.f);
 
             // Get the aux signal to pass it through
             aux1Channels = msgFromModule->aux1_channels;
@@ -130,7 +130,7 @@ struct DaisyChannelVu : Module {
                 || rightExpander.module->model == modelDaisyChannelSends2
                 || rightExpander.module->model == modelDaisyBlank
             )) {
-            DaisyMessage* msgToModule = (DaisyMessage*)(rightExpander.module->leftExpander.producerMessage);
+            DaisyMessage* msgToModule = static_cast<DaisyMessage*>(rightExpander.module->leftExpander.producerMessage);
 
             msgToModule->channels = chainChannels;
             for (int c = 0; c < chainChannels; c++) {
@@ -163,8 +163,9 @@ struct DaisyChannelVu : Module {
         // Set lights
         if (lightDivider.process()) {
             for (int i = VU_LIGHT_COUNT + 8 + 3; i >= 0; i--) {
-                lights[VU_LIGHTS_L + i].setBrightness(vuMeter[0].getBrightness(-60.f + 1.5f * i + 1, -60 + 1.5f * i));
-                lights[VU_LIGHTS_R + i].setBrightness(vuMeter[1].getBrightness(-60.f + 1.5f * i + 1, -60 + 1.5f * i));
+                const float position = 1.5f * static_cast<float>(i);
+                lights[VU_LIGHTS_L + i].setBrightness(vuMeter[0].getBrightness(-60.f + position + 1, -60 + position));
+                lights[VU_LIGHTS_R + i].setBrightness(vuMeter[1].getBrightness(-60.f + position + 1, -60 + position));
             }
             lights[LINK_LIGHT_L].setBrightness(link_l);
             lights[LINK_LIGHT_R].setBrightness(link_r);
@@ -176,7 +177,7 @@ struct DaisyChannelVuWidget : ModuleWidget {
 
     dsp::ClockDivider uiDivider;
 
-    DaisyChannelVuWidget(DaisyChannelVu *module) {
+    explicit DaisyChannelVuWidget(DaisyChannelVu *module) {
         setModule(module);
         setPanel(
             createPanel(
@@ -194,16 +195,16 @@ struct DaisyChannelVuWidget : ModuleWidget {
         addChild(createLightCentered<TinyLight<YellowLight>>(Vec(RACK_GRID_WIDTH / 2 + 3, 361.0f), module, DaisyChannelVu::LINK_LIGHT_R));
 
         for (int i = 0; i < VU_LIGHT_COUNT; i++) {
-            addChild(createLightCentered<VCVSliderLight<GreenLight>>(Vec(RACK_GRID_WIDTH / 2 - 3.f, 339.f - i * 7), module, DaisyChannelVu::VU_LIGHTS_L + i));
-            addChild(createLightCentered<VCVSliderLight<GreenLight>>(Vec(RACK_GRID_WIDTH / 2 + 3.f, 339.f - i * 7), module, DaisyChannelVu::VU_LIGHTS_R + i));
+            addChild(createLightCentered<VCVSliderLight<GreenLight>>(Vec(RACK_GRID_WIDTH / 2 - 3.f, 339.f - static_cast<float>(i) * 7), module, DaisyChannelVu::VU_LIGHTS_L + i));
+            addChild(createLightCentered<VCVSliderLight<GreenLight>>(Vec(RACK_GRID_WIDTH / 2 + 3.f, 339.f - static_cast<float>(i) * 7), module, DaisyChannelVu::VU_LIGHTS_R + i));
         }
         for (int i = VU_LIGHT_COUNT; i < VU_LIGHT_COUNT + 8; i++) {
-            addChild(createLightCentered<VCVSliderLight<YellowLight>>(Vec(RACK_GRID_WIDTH / 2 - 3.f, 339.f - i * 7), module, DaisyChannelVu::VU_LIGHTS_L + i));
-            addChild(createLightCentered<VCVSliderLight<YellowLight>>(Vec(RACK_GRID_WIDTH / 2 + 3.f, 339.f - i * 7), module, DaisyChannelVu::VU_LIGHTS_R + i));
+            addChild(createLightCentered<VCVSliderLight<YellowLight>>(Vec(RACK_GRID_WIDTH / 2 - 3.f, 339.f - static_cast<float>(i) * 7), module, DaisyChannelVu::VU_LIGHTS_L + i));
+            addChild(createLightCentered<VCVSliderLight<YellowLight>>(Vec(RACK_GRID_WIDTH / 2 + 3.f, 339.f - static_cast<float>(i) * 7), module, DaisyChannelVu::VU_LIGHTS_R + i));
         }
         for (int i = VU_LIGHT_COUNT + 8; i < VU_LIGHT_COUNT + 12; i++) {
-            addChild(createLightCentered<VCVSliderLight<RedLight>>(Vec(RACK_GRID_WIDTH / 2 - 3.f, 339.f - i * 7), module, DaisyChannelVu::VU_LIGHTS_L + i));
-            addChild(createLightCentered<VCVSliderLight<RedLight>>(Vec(RACK_GRID_WIDTH / 2 + 3.f, 339.f - i * 7), module, DaisyChannelVu::VU_LIGHTS_R + i));
+            addChild(createLightCentered<VCVSliderLight<RedLight>>(Vec(RACK_GRID_WIDTH / 2 - 3.f, 339.f - static_cast<float>(i) * 7), module, DaisyChannelVu::VU_LIGHTS_L + i));
+            addChild(createLightCentered<VCVSliderLight<RedLight>>(Vec(RACK_GRID_WIDTH / 2 + 3.f, 339.f - static_cast<float>(i) * 7), module, DaisyChannelVu::VU_LIGHTS_R + i));
         }
 
         uiDivider.setDivision(DAISY_UI_DIVISION);

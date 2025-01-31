@@ -33,7 +33,7 @@ struct DaisyMaster2 : Module {
         CHANNEL_SEP,
         NUM_MODELS
     };
-    Model* daisyModels[NUM_MODELS];
+    Model* daisyModels[NUM_MODELS] {};
     Vec widgetPos;
 
     DaisyMessage daisyMessages[2][1];
@@ -96,7 +96,7 @@ struct DaisyMaster2 : Module {
                     || leftExpander.module->model == modelDaisyChannelSends2
                     || leftExpander.module->model == modelDaisyBlank
                 )) {
-                DaisyMessage* msgFromExpander = (DaisyMessage*)(leftExpander.consumerMessage);
+                DaisyMessage* msgFromExpander = static_cast<DaisyMessage*>(leftExpander.consumerMessage);
 
                 channels = msgFromExpander->channels;
                 for (int c = 0; c < channels; c++) {
@@ -119,10 +119,9 @@ struct DaisyMaster2 : Module {
                 mix_r[c] = clamp(mix_r[c] * DAISY_DIVISOR, -12.f, 12.f) * gain;
             }
 
-            float mix_cv = 1.f;
             if (inputs[MIX_CV_INPUT].isConnected()) {
                 for (int c = 0; c < channels; c++) {
-                    mix_cv = clamp(inputs[MIX_CV_INPUT].getPolyVoltage(c) / 10.f, 0.f, 1.f);
+                    const float mix_cv = clamp(inputs[MIX_CV_INPUT].getPolyVoltage(c) / 10.f, 0.f, 1.f);
                     mix_l[c] *= mix_cv;
                     mix_r[c] *= mix_cv;
                 }
@@ -130,7 +129,7 @@ struct DaisyMaster2 : Module {
 
             // Set output to right-side linked VU meter module
             if (rightExpander.module && rightExpander.module->model == modelDaisyChannelVu) {
-                DaisyMessage* msgToModule = (DaisyMessage*)(rightExpander.module->leftExpander.producerMessage);
+                DaisyMessage* msgToModule = static_cast<DaisyMessage*>(rightExpander.module->leftExpander.producerMessage);
                 msgToModule->single_channels = channels;
                 for (int c = 0; c < channels; c++) {
                     msgToModule->single_voltages_l[c] = mix_l[c];
@@ -152,7 +151,7 @@ struct DaisyMaster2 : Module {
         }
     }
 
-    Vec spawnModule(Vec pos, Model *model) {
+    static Vec spawnModule(Vec pos, Model *model) {
         Module *newModule = model->createModule();
 
         // Create module widget
@@ -167,7 +166,7 @@ struct DaisyMaster2 : Module {
         APP->scene->rack->addModule(newWidget);
 
         // Record history
-        history::ModuleAdd *h = new history::ModuleAdd;
+        auto *h = new history::ModuleAdd;
         h->name = "create module";
         h->setModule(newWidget);
         APP->history->push(h);
@@ -182,9 +181,9 @@ struct DaisyMaster2 : Module {
      * position of the leftmost channel strip. Use the position of that module
      * to determine where the next channel strips should be placed.
      */
-    void addChannelStrips(ModuleWidget *parentWidget, int channelStripCount, int channelAuxCount, bool includeVuMeters) {
+    void addChannelStrips(const ModuleWidget *parentWidget, const int channelStripCount, const int channelAuxCount, const bool includeVuMeters) const {
         Vec next;
-        Vec pos = parentWidget->box.pos;
+        const Vec pos = parentWidget->box.pos;
 
         if (widgetPos.x == 0) {
             next = pos;
@@ -242,7 +241,7 @@ struct DaisyMasterWidget2 : ModuleWidget {
 
     dsp::ClockDivider uiDivider;
 
-    DaisyMasterWidget2(DaisyMaster2 *module) {
+    explicit DaisyMasterWidget2(DaisyMaster2 *module) {
         setModule(module);
         setPanel(
             createPanel(
@@ -258,24 +257,24 @@ struct DaisyMasterWidget2 : ModuleWidget {
         addChild(createWidget<ThemedScrew>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
         // Level & CV
-        addParam(createParam<RoundLargeBlackKnob>(Vec(RACK_GRID_WIDTH * 1.5 - (36.0 / 2), 52.0), module, DaisyMaster2::MIX_LVL_PARAM));
-        addInput(createInput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH * 1.5 - (25.0 / 2), 96.0), module, DaisyMaster2::MIX_CV_INPUT));
+        addParam(createParam<RoundLargeBlackKnob>(Vec(RACK_GRID_WIDTH * 1.5f - (36.0f / 2), 52.0), module, DaisyMaster2::MIX_LVL_PARAM));
+        addInput(createInput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH * 1.5f - (25.0f / 2), 96.0), module, DaisyMaster2::MIX_CV_INPUT));
 
         // Mute
-        addParam(createLightParam<VCVLightLatch<MediumSimpleLight<RedLight>>>(Vec(RACK_GRID_WIDTH * 1.5 - 9.0, 254.0), module, DaisyMaster2::MUTE_PARAM, DaisyMaster2::MUTE_LIGHT));
+        addParam(createLightParam<VCVLightLatch<MediumSimpleLight<RedLight>>>(Vec(RACK_GRID_WIDTH * 1.5f - 9.0f, 254.0), module, DaisyMaster2::MUTE_PARAM, DaisyMaster2::MUTE_LIGHT));
 
         // Mix output
-        addOutput(createOutput<ThemedPJ301MPort>(Vec((RACK_GRID_WIDTH * 1.5) - (25.0 / 2), 290.0), module, DaisyMaster2::MIX_OUTPUT_1));
-        addOutput(createOutput<ThemedPJ301MPort>(Vec((RACK_GRID_WIDTH * 1.5) - (25.0 / 2), 316.0), module, DaisyMaster2::MIX_OUTPUT_2));
+        addOutput(createOutput<ThemedPJ301MPort>(Vec((RACK_GRID_WIDTH * 1.5f) - (25.0f / 2), 290.0), module, DaisyMaster2::MIX_OUTPUT_1));
+        addOutput(createOutput<ThemedPJ301MPort>(Vec((RACK_GRID_WIDTH * 1.5f) - (25.0f / 2), 316.0), module, DaisyMaster2::MIX_OUTPUT_2));
 
         // Link light
-        addChild(createLightCentered<TinyLight<YellowLight>>(Vec(RACK_GRID_WIDTH - 6, 361.0f), module, DaisyMaster2::LINK_LIGHT_L));
+        addChild(createLightCentered<TinyLight<YellowLight>>(Vec(RACK_GRID_WIDTH - 6, 361.0), module, DaisyMaster2::LINK_LIGHT_L));
 
         uiDivider.setDivision(24);
     }
 
     void appendContextMenu(Menu *menu) override {
-        DaisyMaster2* module = getModule<DaisyMaster2>();
+        const DaisyMaster2* module = getModule<DaisyMaster2>();
 
         menu->addChild(new MenuSeparator);
         menu->addChild(createMenuItem("Create 1 channel", "", [ = ]() {

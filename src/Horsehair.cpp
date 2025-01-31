@@ -24,7 +24,7 @@ struct VoltageControlledOscillator {
 
     T lastSyncValue = 0.f;
     T phase = 0.f;
-    T freq;
+    T freq{};
     T pulseWidth = 0.5f;
     T syncDirection = 1.f;
 
@@ -43,7 +43,7 @@ struct VoltageControlledOscillator {
     }
 
     void setPulseWidth(T pulseWidth) {
-        const float pwMin = 0.01f;
+        constexpr float pwMin = 0.01f;
         this->pulseWidth = simd::clamp(pulseWidth, pwMin, 1.f - pwMin);
     }
 
@@ -92,7 +92,7 @@ struct VoltageControlledOscillator {
 
         // Jump saw when crossing 0.5
         T halfCrossing = (0.5f - (phase - deltaPhase)) / deltaPhase;
-        int halfMask = simd::movemask((0 < halfCrossing) & (halfCrossing <= 1.f));
+        const int halfMask = simd::movemask((0 < halfCrossing) & (halfCrossing <= 1.f));
         if (halfMask) {
             for (int i = 0; i < channels; i++) {
                 if (halfMask & (1 << i)) {
@@ -124,7 +124,7 @@ struct VoltageControlledOscillator {
     }
 
     T sin(T phase) {
-        T v;
+        T v{};
         if (analog) {
             // Quadratic approximation of sine, slightly richer harmonics
             T halfPhase = (phase < 0.5f);
@@ -141,7 +141,7 @@ struct VoltageControlledOscillator {
     }
 
     T saw(T phase) {
-        T v;
+        T v{};
         T x = phase + 0.5f;
         x -= simd::trunc(x);
         if (analog) {
@@ -219,19 +219,19 @@ struct Horsehair : Module {
 
         float octave = params[OCTAVE_PARAM + 0].getValue();
         float octave2 = params[OCTAVE_PARAM + 1].getValue();
-        float pitch_fine = params[PITCH_PARAM].getValue() / 4.0;
+        float pitch_fine = params[PITCH_PARAM].getValue() / 4.0f;
         float pw = params[PW_PARAM + 0].getValue();
         float pw2 = params[PW_PARAM + 1].getValue();
 
         float shape = clamp(params[SHAPE_PARAM + 0].getValue(), 0.0f, 1.0f);
         if (inputs[SHAPE_CV_INPUT + 0].isConnected()) {
-            shape += inputs[SHAPE_CV_INPUT + 0].getVoltage() / 10.0;
+            shape += inputs[SHAPE_CV_INPUT + 0].getVoltage() / 10.0f;
             shape = clamp(shape, 0.0f, 1.0f);
         }
 
         float shape2 = clamp(params[SHAPE_PARAM + 1].getValue(), 0.0f, 1.0f);
         if (inputs[SHAPE_CV_INPUT + 1].isConnected()) {
-            shape2 += inputs[SHAPE_CV_INPUT + 1].getVoltage() / 10.0;
+            shape2 += inputs[SHAPE_CV_INPUT + 1].getVoltage() / 10.0f;
             shape2 = clamp(shape2, 0.0f, 1.0f);
         }
 
@@ -241,7 +241,7 @@ struct Horsehair : Module {
         for (int c = 0; c < channels; c += 4) {
             auto *oscillator = &oscillators[c / 4];
             oscillator->channels = std::min(channels - c, 4);
-            float_4 pitch = 1.0 + roundf(octave) + pitch_fine;
+            float_4 pitch = 1.0f + roundf(octave) + pitch_fine;
             pitch += inputs[PITCH_INPUT].getVoltageSimd<float_4>(c);
             oscillator->setPitch(pitch);
             oscillator->setPulseWidth(pw + inputs[PW_CV_INPUT + 0].getPolyVoltageSimd<float_4>(c) / 10.f);
@@ -249,7 +249,7 @@ struct Horsehair : Module {
 
             auto *oscillator2 = &oscillators2[c / 4];
             oscillator2->channels = std::min(channels - c, 4);
-            float_4 pitch2 = 1.0 + roundf(octave2) + pitch_fine;
+            float_4 pitch2 = 1.0f + roundf(octave2) + pitch_fine;
             pitch2 += inputs[PITCH_INPUT].getVoltageSimd<float_4>(c);
             oscillator2->setPitch(pitch2);
             oscillator2->setPulseWidth(pw2 + inputs[PW_CV_INPUT + 1].getPolyVoltageSimd<float_4>(c) / 10.f);
@@ -258,7 +258,7 @@ struct Horsehair : Module {
             if (outputs[MIX_OUTPUT].isConnected()) {
                 out = simd::crossfade(oscillator->sqr(), oscillator->saw(), shape);
                 out2 = simd::crossfade(oscillator2->sqr(), oscillator2->saw(), shape2);
-                float_4 mix = clamp(params[MIX_PARAM].getValue() + inputs[MIX_CV_INPUT].getPolyVoltageSimd<float_4>(c) / 10.0, 0.0f, 1.0f);
+                const float_4 mix = clamp(params[MIX_PARAM].getValue() + inputs[MIX_CV_INPUT].getPolyVoltageSimd<float_4>(c) / 10.0, 0.0f, 1.0f);
                 outputs[MIX_OUTPUT].setChannels(channels);
                 outputs[MIX_OUTPUT].setVoltageSimd(5.0f * simd::crossfade(out, out2, mix), c);
             }
@@ -272,7 +272,7 @@ struct Horsehair : Module {
 };
 
 struct HorsehairWidget : ModuleWidget {
-    HorsehairWidget(Horsehair *module) {
+    explicit HorsehairWidget(Horsehair *module) {
         setModule(module);
         setPanel(
             createPanel(
@@ -298,17 +298,17 @@ struct HorsehairWidget : ModuleWidget {
         // Shape
         addParam(createParam<RoundBlackKnob>(Vec(RACK_GRID_WIDTH, 142.0), module, Horsehair::SHAPE_PARAM + 0));
         addParam(createParam<RoundBlackKnob>(Vec(RACK_GRID_WIDTH * 4, 142.0), module, Horsehair::SHAPE_PARAM + 1));
-        addInput(createInput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 11.5, 172.0), module, Horsehair::SHAPE_CV_INPUT + 0));
-        addInput(createInput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH * 4 + 16.5, 172.0), module, Horsehair::SHAPE_CV_INPUT + 1));
+        addInput(createInput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 11.5f, 172.0), module, Horsehair::SHAPE_CV_INPUT + 0));
+        addInput(createInput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH * 4 + 16.5f, 172.0), module, Horsehair::SHAPE_CV_INPUT + 1));
 
         // Pulse width
         addParam(createParam<RoundBlackKnob>(Vec(RACK_GRID_WIDTH, 215.0), module, Horsehair::PW_PARAM + 0));
         addParam(createParam<RoundBlackKnob>(Vec(RACK_GRID_WIDTH * 4, 215.0), module, Horsehair::PW_PARAM + 1));
-        addInput(createInput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 11.5, 245.0), module, Horsehair::PW_CV_INPUT + 0));
-        addInput(createInput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH * 4 + 16.5, 245.0), module, Horsehair::PW_CV_INPUT + 1));
+        addInput(createInput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 11.5f, 245.0), module, Horsehair::PW_CV_INPUT + 0));
+        addInput(createInput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH * 4 + 16.5f, 245.0), module, Horsehair::PW_CV_INPUT + 1));
 
         // Osc Mix
-        addParam(createParam<RoundLargeBlackKnob>(Vec(RACK_GRID_WIDTH * 3.5 - (38.0 / 2), 264.0), module, Horsehair::MIX_PARAM));
+        addParam(createParam<RoundLargeBlackKnob>(Vec(RACK_GRID_WIDTH * 3.5f - (38.0f / 2), 264.0), module, Horsehair::MIX_PARAM));
         addInput(createInput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 8, 277.0), module, Horsehair::MIX_CV_INPUT));
 
         // Output

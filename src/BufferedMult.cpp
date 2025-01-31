@@ -59,7 +59,7 @@ struct BufferedMult : Module {
 };
 
 struct BufferedMultWidget : ModuleWidget {
-    BufferedMultWidget(BufferedMult *module) {
+    explicit BufferedMultWidget(BufferedMult *module) {
         setModule(module);
         setPanel(
             createPanel(
@@ -73,19 +73,19 @@ struct BufferedMultWidget : ModuleWidget {
         addChild(createWidget<ThemedScrew>(Vec(0, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
         // Connect switch
-        addParam(createParam<CKSS>(Vec(RACK_GRID_WIDTH - 7.0, 182.0), module, BufferedMult::CONNECT_PARAM));
+        addParam(createParam<CKSS>(Vec(RACK_GRID_WIDTH - 7.0f, 182.0), module, BufferedMult::CONNECT_PARAM));
 
         // Group A
-        addInput(createInput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 50.0), module, BufferedMult::CH_INPUT + 0));
-        addOutput(createOutput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 92.0), module, BufferedMult::CH_OUTPUT + 0));
-        addOutput(createOutput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 120.0), module, BufferedMult::CH_OUTPUT + 1));
-        addOutput(createOutput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 148.0), module, BufferedMult::CH_OUTPUT + 2));
+        addInput(createInput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5f, 50.0), module, BufferedMult::CH_INPUT + 0));
+        addOutput(createOutput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5f, 92.0), module, BufferedMult::CH_OUTPUT + 0));
+        addOutput(createOutput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5f, 120.0), module, BufferedMult::CH_OUTPUT + 1));
+        addOutput(createOutput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5f, 148.0), module, BufferedMult::CH_OUTPUT + 2));
 
         // Group B
-        addInput(createInput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 222.0), module, BufferedMult::CH_INPUT + 1));
-        addOutput(createOutput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 264.0), module, BufferedMult::CH_OUTPUT + 3));
-        addOutput(createOutput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 292.0), module, BufferedMult::CH_OUTPUT + 4));
-        addOutput(createOutput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 320.0), module, BufferedMult::CH_OUTPUT + 5));
+        addInput(createInput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5f, 222.0), module, BufferedMult::CH_INPUT + 1));
+        addOutput(createOutput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5f, 264.0), module, BufferedMult::CH_OUTPUT + 3));
+        addOutput(createOutput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5f, 292.0), module, BufferedMult::CH_OUTPUT + 4));
+        addOutput(createOutput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5f, 320.0), module, BufferedMult::CH_OUTPUT + 5));
     }
 };
 
