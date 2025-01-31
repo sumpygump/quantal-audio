@@ -40,13 +40,15 @@
       "slug": "DaisyChannel",
       "name": "Daisy Mix Channel MONO | 2HP",
       "description": "Modular mixer channel - legacy daisy chainable",
-      "tags": ["Mixer", "Polyphonic"]
+      "tags": ["Mixer", "Polyphonic"],
+      "hidden": true
     },
     {
       "slug": "DaisyMaster",
       "name": "Daisy Mix Master MONO | 3HP",
       "description": "Modular mixer master - legacy",
-      "tags": ["Mixer", "Polyphonic"]
+      "tags": ["Mixer", "Polyphonic"],
+      "hidden": true
     },
     {
       "slug": "DaisyChannel2",
