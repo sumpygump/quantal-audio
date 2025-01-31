@@ -34,8 +34,8 @@ struct DaisyMaster : Module {
         configOutput(MIX_OUTPUT, "Mix");
     }
 
-    json_t *dataToJson() override {
-        json_t *rootJ = json_object();
+    json_t* dataToJson() override {
+        json_t* rootJ = json_object();
 
         // mute
         json_object_set_new(rootJ, "muted", json_boolean(muted));
@@ -43,11 +43,12 @@ struct DaisyMaster : Module {
         return rootJ;
     }
 
-    void dataFromJson(json_t *rootJ) override {
+    void dataFromJson(json_t* rootJ) override {
         // mute
-        json_t *mutedJ = json_object_get(rootJ, "muted");
-        if (mutedJ)
+        json_t* mutedJ = json_object_get(rootJ, "muted");
+        if (mutedJ) {
             muted = json_is_true(mutedJ);
+        }
     }
 
     void process(const ProcessArgs &args) override {
@@ -109,7 +110,7 @@ struct DaisyMasterWidget : ModuleWidget {
 
         // Mute
         addParam(createParam<LEDButton>(Vec(RACK_GRID_WIDTH * 1.5 - 9.0, 206.0), module, DaisyMaster::MUTE_PARAM));
-        addChild(createLight<MediumLight<RedLight >> (Vec(RACK_GRID_WIDTH * 1.5 - 4.5, 210.25f), module, DaisyMaster::MUTE_LIGHT));
+        addChild(createLight<MediumLight<RedLight>>(Vec(RACK_GRID_WIDTH * 1.5 - 4.5, 210.25f), module, DaisyMaster::MUTE_LIGHT));
 
         // Mix output
         addOutput(createOutput<ThemedPJ301MPort>(Vec((RACK_GRID_WIDTH * 1.5) - (25.0 / 2), 245.0), module, DaisyMaster::MIX_OUTPUT));
@@ -119,4 +120,4 @@ struct DaisyMasterWidget : ModuleWidget {
     }
 };
 
-Model *modelDaisyMaster = createModel<DaisyMaster, DaisyMasterWidget>("DaisyMaster");
+Model* modelDaisyMaster = createModel<DaisyMaster, DaisyMasterWidget>("DaisyMaster");

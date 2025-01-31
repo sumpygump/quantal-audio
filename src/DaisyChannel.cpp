@@ -39,8 +39,8 @@ struct DaisyChannel : Module {
         configOutput(CHAIN_OUTPUT, "Daisy chain");
     }
 
-    json_t *dataToJson() override {
-        json_t *rootJ = json_object();
+    json_t* dataToJson() override {
+        json_t* rootJ = json_object();
 
         // mute
         json_object_set_new(rootJ, "muted", json_boolean(muted));
@@ -48,11 +48,12 @@ struct DaisyChannel : Module {
         return rootJ;
     }
 
-    void dataFromJson(json_t *rootJ) override {
+    void dataFromJson(json_t* rootJ) override {
         // mute
-        json_t *mutedJ = json_object_get(rootJ, "muted");
-        if (mutedJ)
+        json_t* mutedJ = json_object_get(rootJ, "muted");
+        if (mutedJ) {
             muted = json_is_true(mutedJ);
+        }
     }
 
     void process(const ProcessArgs &args) override {
@@ -124,7 +125,7 @@ struct DaisyChannelWidget : ModuleWidget {
 
         // Mute
         addParam(createParam<LEDButton>(Vec(RACK_GRID_WIDTH - 9.0, 206.0), module, DaisyChannel::MUTE_PARAM));
-        addChild(createLight<MediumLight<RedLight >> (Vec(RACK_GRID_WIDTH - 4.5, 210.25f), module, DaisyChannel::MUTE_LIGHT));
+        addChild(createLight<MediumLight<RedLight>>(Vec(RACK_GRID_WIDTH - 4.5, 210.25f), module, DaisyChannel::MUTE_LIGHT));
 
         // Chain Input/Output
         addInput(createInput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 290.5), module, DaisyChannel::CHAIN_INPUT));
@@ -132,4 +133,4 @@ struct DaisyChannelWidget : ModuleWidget {
     }
 };
 
-Model *modelDaisyChannel = createModel<DaisyChannel, DaisyChannelWidget>("DaisyChannel");
+Model* modelDaisyChannel = createModel<DaisyChannel, DaisyChannelWidget>("DaisyChannel");

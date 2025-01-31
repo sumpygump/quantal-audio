@@ -1,6 +1,6 @@
 #include "QuantalAudio.hpp"
 
-Plugin *pluginInstance;
+Plugin* pluginInstance;
 
 void init(Plugin *p) {
     pluginInstance = p;

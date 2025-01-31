@@ -56,8 +56,8 @@ struct DaisyChannelSends2 : Module {
         lightDivider.setDivision(512);
     }
 
-    json_t *dataToJson() override {
-        json_t *rootJ = json_object();
+    json_t* dataToJson() override {
+        json_t* rootJ = json_object();
 
         // mute
         json_object_set_new(rootJ, "group", json_integer(group));
@@ -65,9 +65,9 @@ struct DaisyChannelSends2 : Module {
         return rootJ;
     }
 
-    void dataFromJson(json_t *rootJ) override {
+    void dataFromJson(json_t* rootJ) override {
         // mute
-        json_t *groupJ = json_object_get(rootJ, "group");
+        json_t* groupJ = json_object_get(rootJ, "group");
         if (groupJ) {
             group = json_integer_value(groupJ);
         }
@@ -105,12 +105,12 @@ struct DaisyChannelSends2 : Module {
 
         // Get daisy-chained data from left-side linked module
         if (leftExpander.module && (
-                    leftExpander.module->model == modelDaisyChannel2
-                    || leftExpander.module->model == modelDaisyChannelVu
-                    || leftExpander.module->model == modelDaisyChannelSends2
-                    || leftExpander.module->model == modelDaisyBlank
-                )) {
-            DaisyMessage *msgFromModule = (DaisyMessage *)(leftExpander.consumerMessage);
+                leftExpander.module->model == modelDaisyChannel2
+                || leftExpander.module->model == modelDaisyChannelVu
+                || leftExpander.module->model == modelDaisyChannelSends2
+                || leftExpander.module->model == modelDaisyBlank
+            )) {
+            DaisyMessage* msgFromModule = (DaisyMessage*)(leftExpander.consumerMessage);
 
             chainChannels = msgFromModule->channels;
             for (int c = 0; c < chainChannels; c++) {
@@ -153,13 +153,13 @@ struct DaisyChannelSends2 : Module {
 
         // Set daisy-chained output to right-side linked module
         if (rightExpander.module && (
-                    rightExpander.module->model == modelDaisyMaster2
-                    || rightExpander.module->model == modelDaisyChannel2
-                    || rightExpander.module->model == modelDaisyChannelVu
-                    || rightExpander.module->model == modelDaisyChannelSends2
-                    || rightExpander.module->model == modelDaisyBlank
-                )) {
-            DaisyMessage *msgToModule = (DaisyMessage *)(rightExpander.module->leftExpander.producerMessage);
+                rightExpander.module->model == modelDaisyMaster2
+                || rightExpander.module->model == modelDaisyChannel2
+                || rightExpander.module->model == modelDaisyChannelVu
+                || rightExpander.module->model == modelDaisyChannelSends2
+                || rightExpander.module->model == modelDaisyBlank
+            )) {
+            DaisyMessage* msgToModule = (DaisyMessage*)(rightExpander.module->leftExpander.producerMessage);
 
             msgToModule->channels = chainChannels;
             for (int c = 0; c < chainChannels; c++) {
@@ -196,7 +196,7 @@ struct DaisyChannelSends2 : Module {
         // Set this channel's output to right-side linked VU module
         if (rightExpander.module && rightExpander.module->model == modelDaisyChannelVu) {
             // Write this module's output to the single channel message
-            DaisyMessage *msgToModule = (DaisyMessage *)(rightExpander.module->leftExpander.producerMessage);
+            DaisyMessage* msgToModule = (DaisyMessage*)(rightExpander.module->leftExpander.producerMessage);
             msgToModule->single_channels = chainChannels;
             for (int c = 0; c < chainChannels; c++) {
                 msgToModule->single_voltages_l[c] = aux_l[c];
@@ -249,17 +249,17 @@ struct DaisyChannelSendsWidget2 : ModuleWidget {
         addChild(createWidget<ThemedScrew>(Vec(0, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
         // Switch
-        addParam(createLightParamCentered<VCVLightButton<MediumSimpleLight<WhiteLight >>> (Vec(RACK_GRID_WIDTH - 0, 57.5f), module, DaisyChannelSends2::GROUP_PARAM, DaisyChannelSends2::GROUP_BTN_LIGHT));
-        addChild(createLightCentered<SmallLight<BlueLight >> (Vec(RACK_GRID_WIDTH - 2, 80.0f), module, DaisyChannelSends2::GROUP1_LIGHT));
-        addChild(createLightCentered<SmallLight<BlueLight >> (Vec(RACK_GRID_WIDTH - 2, 90.0f), module, DaisyChannelSends2::GROUP2_LIGHT));
+        addParam(createLightParamCentered<VCVLightButton<MediumSimpleLight<WhiteLight>>>(Vec(RACK_GRID_WIDTH - 0, 57.5f), module, DaisyChannelSends2::GROUP_PARAM, DaisyChannelSends2::GROUP_BTN_LIGHT));
+        addChild(createLightCentered<SmallLight<BlueLight>>(Vec(RACK_GRID_WIDTH - 2, 80.0f), module, DaisyChannelSends2::GROUP1_LIGHT));
+        addChild(createLightCentered<SmallLight<BlueLight>>(Vec(RACK_GRID_WIDTH - 2, 90.0f), module, DaisyChannelSends2::GROUP2_LIGHT));
 
         // Channel Output
         addOutput(createOutput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 290.0), module, DaisyChannelSends2::CH_OUTPUT_1));
         addOutput(createOutput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 316.0), module, DaisyChannelSends2::CH_OUTPUT_2));
 
         // Link lights
-        addChild(createLightCentered<TinyLight<YellowLight >> (Vec(RACK_GRID_WIDTH - 4, 361.0f), module, DaisyChannelSends2::LINK_LIGHT_L));
-        addChild(createLightCentered<TinyLight<YellowLight >> (Vec(RACK_GRID_WIDTH + 4, 361.0f), module, DaisyChannelSends2::LINK_LIGHT_R));
+        addChild(createLightCentered<TinyLight<YellowLight>>(Vec(RACK_GRID_WIDTH - 4, 361.0f), module, DaisyChannelSends2::LINK_LIGHT_L));
+        addChild(createLightCentered<TinyLight<YellowLight>>(Vec(RACK_GRID_WIDTH + 4, 361.0f), module, DaisyChannelSends2::LINK_LIGHT_R));
     }
 
     void step() override {
@@ -275,4 +275,4 @@ struct DaisyChannelSendsWidget2 : ModuleWidget {
     }
 };
 
-Model *modelDaisyChannelSends2 = createModel<DaisyChannelSends2, DaisyChannelSendsWidget2>("DaisyChannelSends2");
+Model* modelDaisyChannelSends2 = createModel<DaisyChannelSends2, DaisyChannelSendsWidget2>("DaisyChannelSends2");

@@ -80,13 +80,13 @@ struct DaisyChannelVu : Module {
 
         // Get daisy-chained data from left-side linked module
         if (leftExpander.module && (
-                    leftExpander.module->model == modelDaisyChannel2
-                    || leftExpander.module->model == modelDaisyChannelVu
-                    || leftExpander.module->model == modelDaisyChannelSends2
-                    || leftExpander.module->model == modelDaisyMaster2
-                    || leftExpander.module->model == modelDaisyBlank
-                )) {
-            DaisyMessage *msgFromModule = (DaisyMessage *)(leftExpander.consumerMessage);
+                leftExpander.module->model == modelDaisyChannel2
+                || leftExpander.module->model == modelDaisyChannelVu
+                || leftExpander.module->model == modelDaisyChannelSends2
+                || leftExpander.module->model == modelDaisyMaster2
+                || leftExpander.module->model == modelDaisyBlank
+            )) {
+            DaisyMessage* msgFromModule = (DaisyMessage*)(leftExpander.consumerMessage);
             chainChannels = msgFromModule->channels;
             for (int c = 0; c < chainChannels; c++) {
                 daisySignals_l[c] = msgFromModule->voltages_l[c];
@@ -124,13 +124,13 @@ struct DaisyChannelVu : Module {
 
         // Set daisy-chained output to right-side linked module
         if (rightExpander.module && (
-                    rightExpander.module->model == modelDaisyMaster2
-                    || rightExpander.module->model == modelDaisyChannel2
-                    || rightExpander.module->model == modelDaisyChannelVu
-                    || rightExpander.module->model == modelDaisyChannelSends2
-                    || rightExpander.module->model == modelDaisyBlank
-                )) {
-            DaisyMessage *msgToModule = (DaisyMessage *)(rightExpander.module->leftExpander.producerMessage);
+                rightExpander.module->model == modelDaisyMaster2
+                || rightExpander.module->model == modelDaisyChannel2
+                || rightExpander.module->model == modelDaisyChannelVu
+                || rightExpander.module->model == modelDaisyChannelSends2
+                || rightExpander.module->model == modelDaisyBlank
+            )) {
+            DaisyMessage* msgToModule = (DaisyMessage*)(rightExpander.module->leftExpander.producerMessage);
 
             msgToModule->channels = chainChannels;
             for (int c = 0; c < chainChannels; c++) {
@@ -190,20 +190,20 @@ struct DaisyChannelVuWidget : ModuleWidget {
         addChild(createWidget<ThemedScrew>(Vec(0, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
         // Link lights
-        addChild(createLightCentered<TinyLight<YellowLight >> (Vec(RACK_GRID_WIDTH / 2 - 3, 361.0f), module, DaisyChannelVu::LINK_LIGHT_L));
-        addChild(createLightCentered<TinyLight<YellowLight >> (Vec(RACK_GRID_WIDTH / 2 + 3, 361.0f), module, DaisyChannelVu::LINK_LIGHT_R));
+        addChild(createLightCentered<TinyLight<YellowLight>>(Vec(RACK_GRID_WIDTH / 2 - 3, 361.0f), module, DaisyChannelVu::LINK_LIGHT_L));
+        addChild(createLightCentered<TinyLight<YellowLight>>(Vec(RACK_GRID_WIDTH / 2 + 3, 361.0f), module, DaisyChannelVu::LINK_LIGHT_R));
 
         for (int i = 0; i < VU_LIGHT_COUNT; i++) {
-            addChild(createLightCentered<VCVSliderLight<GreenLight >> (Vec(RACK_GRID_WIDTH / 2 - 3.f, 339.f - i * 7), module, DaisyChannelVu::VU_LIGHTS_L + i));
-            addChild(createLightCentered<VCVSliderLight<GreenLight >> (Vec(RACK_GRID_WIDTH / 2 + 3.f, 339.f - i * 7), module, DaisyChannelVu::VU_LIGHTS_R + i));
+            addChild(createLightCentered<VCVSliderLight<GreenLight>>(Vec(RACK_GRID_WIDTH / 2 - 3.f, 339.f - i * 7), module, DaisyChannelVu::VU_LIGHTS_L + i));
+            addChild(createLightCentered<VCVSliderLight<GreenLight>>(Vec(RACK_GRID_WIDTH / 2 + 3.f, 339.f - i * 7), module, DaisyChannelVu::VU_LIGHTS_R + i));
         }
         for (int i = VU_LIGHT_COUNT; i < VU_LIGHT_COUNT + 8; i++) {
-            addChild(createLightCentered<VCVSliderLight<YellowLight >> (Vec(RACK_GRID_WIDTH / 2 - 3.f, 339.f - i * 7), module, DaisyChannelVu::VU_LIGHTS_L + i));
-            addChild(createLightCentered<VCVSliderLight<YellowLight >> (Vec(RACK_GRID_WIDTH / 2 + 3.f, 339.f - i * 7), module, DaisyChannelVu::VU_LIGHTS_R + i));
+            addChild(createLightCentered<VCVSliderLight<YellowLight>>(Vec(RACK_GRID_WIDTH / 2 - 3.f, 339.f - i * 7), module, DaisyChannelVu::VU_LIGHTS_L + i));
+            addChild(createLightCentered<VCVSliderLight<YellowLight>>(Vec(RACK_GRID_WIDTH / 2 + 3.f, 339.f - i * 7), module, DaisyChannelVu::VU_LIGHTS_R + i));
         }
         for (int i = VU_LIGHT_COUNT + 8; i < VU_LIGHT_COUNT + 12; i++) {
-            addChild(createLightCentered<VCVSliderLight<RedLight >> (Vec(RACK_GRID_WIDTH / 2 - 3.f, 339.f - i * 7), module, DaisyChannelVu::VU_LIGHTS_L + i));
-            addChild(createLightCentered<VCVSliderLight<RedLight >> (Vec(RACK_GRID_WIDTH / 2 + 3.f, 339.f - i * 7), module, DaisyChannelVu::VU_LIGHTS_R + i));
+            addChild(createLightCentered<VCVSliderLight<RedLight>>(Vec(RACK_GRID_WIDTH / 2 - 3.f, 339.f - i * 7), module, DaisyChannelVu::VU_LIGHTS_L + i));
+            addChild(createLightCentered<VCVSliderLight<RedLight>>(Vec(RACK_GRID_WIDTH / 2 + 3.f, 339.f - i * 7), module, DaisyChannelVu::VU_LIGHTS_R + i));
         }
 
         uiDivider.setDivision(DAISY_UI_DIVISION);
@@ -222,4 +222,4 @@ struct DaisyChannelVuWidget : ModuleWidget {
     }
 };
 
-Model *modelDaisyChannelVu = createModel<DaisyChannelVu, DaisyChannelVuWidget>("DaisyChannelVu");
+Model* modelDaisyChannelVu = createModel<DaisyChannelVu, DaisyChannelVuWidget>("DaisyChannelVu");

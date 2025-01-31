@@ -122,4 +122,4 @@ struct UnityMixWidget : ModuleWidget {
     }
 };
 
-Model *modelUnityMix = createModel<UnityMix, UnityMixWidget>("UnityMix");
+Model* modelUnityMix = createModel<UnityMix, UnityMixWidget>("UnityMix");

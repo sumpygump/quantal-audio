@@ -148,4 +148,4 @@ struct MasterMixerWidget : ModuleWidget {
     }
 };
 
-Model *modelMasterMixer = createModel<MasterMixer, MasterMixerWidget>("Mixer2");
+Model* modelMasterMixer = createModel<MasterMixer, MasterMixerWidget>("Mixer2");

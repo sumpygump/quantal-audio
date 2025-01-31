@@ -1,6 +1,5 @@
 #include "QuantalAudio.hpp"
 
-
 struct Blank3Widget : ModuleWidget {
     Blank3Widget(Module *module) {
         setModule(module);
@@ -11,5 +10,4 @@ struct Blank3Widget : ModuleWidget {
     }
 };
 
-
-Model *modelBlank3 = createModel<Module, Blank3Widget>("Blank3");
+Model* modelBlank3 = createModel<Module, Blank3Widget>("Blank3");

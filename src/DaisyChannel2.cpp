@@ -66,8 +66,8 @@ struct DaisyChannel2 : Module {
         lightDivider.setDivision(512);
     }
 
-    json_t *dataToJson() override {
-        json_t *rootJ = json_object();
+    json_t* dataToJson() override {
+        json_t* rootJ = json_object();
 
         // mute
         json_object_set_new(rootJ, "muted", json_boolean(muted));
@@ -77,21 +77,21 @@ struct DaisyChannel2 : Module {
         return rootJ;
     }
 
-    void dataFromJson(json_t *rootJ) override {
+    void dataFromJson(json_t* rootJ) override {
         // mute
-        json_t *mutedJ = json_object_get(rootJ, "muted");
+        json_t* mutedJ = json_object_get(rootJ, "muted");
         if (mutedJ) {
             muted = json_is_true(mutedJ);
         }
 
         // aux 1
-        json_t *aux1_send_amtJ = json_object_get(rootJ, "aux1_send_amt");
+        json_t* aux1_send_amtJ = json_object_get(rootJ, "aux1_send_amt");
         if (aux1_send_amtJ) {
             aux1_send_amt = std::max(0.0f, (float) json_real_value(aux1_send_amtJ));
         }
 
         // aux 2
-        json_t *aux2_send_amtJ = json_object_get(rootJ, "aux2_send_amt");
+        json_t* aux2_send_amtJ = json_object_get(rootJ, "aux2_send_amt");
         if (aux2_send_amtJ) {
             aux2_send_amt = std::max(0.0f, (float) json_real_value(aux2_send_amtJ));
         }
@@ -165,12 +165,12 @@ struct DaisyChannel2 : Module {
 
         // Get daisy-chained data from left-side linked module
         if (leftExpander.module && (
-                    leftExpander.module->model == modelDaisyChannel2
-                    || leftExpander.module->model == modelDaisyChannelVu
-                    || leftExpander.module->model == modelDaisyChannelSends2
-                    || leftExpander.module->model == modelDaisyBlank
-                )) {
-            DaisyMessage *msgFromModule = (DaisyMessage *)(leftExpander.consumerMessage);
+                leftExpander.module->model == modelDaisyChannel2
+                || leftExpander.module->model == modelDaisyChannelVu
+                || leftExpander.module->model == modelDaisyChannelSends2
+                || leftExpander.module->model == modelDaisyBlank
+            )) {
+            DaisyMessage* msgFromModule = (DaisyMessage*)(leftExpander.consumerMessage);
             chainChannels = msgFromModule->channels;
             for (int c = 0; c < chainChannels; c++) {
                 daisySignals_l[c] = msgFromModule->voltages_l[c];
@@ -200,13 +200,13 @@ struct DaisyChannel2 : Module {
 
         // Set daisy-chained output to right-side linked module
         if (rightExpander.module && (
-                    rightExpander.module->model == modelDaisyMaster2
-                    || rightExpander.module->model == modelDaisyChannel2
-                    || rightExpander.module->model == modelDaisyChannelVu
-                    || rightExpander.module->model == modelDaisyChannelSends2
-                    || rightExpander.module->model == modelDaisyBlank
-                )) {
-            DaisyMessage *msgToModule = (DaisyMessage *)(rightExpander.module->leftExpander.producerMessage);
+                rightExpander.module->model == modelDaisyMaster2
+                || rightExpander.module->model == modelDaisyChannel2
+                || rightExpander.module->model == modelDaisyChannelVu
+                || rightExpander.module->model == modelDaisyChannelSends2
+                || rightExpander.module->model == modelDaisyBlank
+            )) {
+            DaisyMessage* msgToModule = (DaisyMessage*)(rightExpander.module->leftExpander.producerMessage);
 
             // Write this module's output along to single voltages pipe
             msgToModule->single_channels = channels;
@@ -262,7 +262,7 @@ struct DaisyChannel2 : Module {
 
 // Struct for keeping track of the value in the right click menu for the aux sends
 struct SendQuantity : Quantity {
-    DaisyChannel2 *_module;
+    DaisyChannel2* _module;
     int _group;
 
     SendQuantity(DaisyChannel2 *m, int g) : _module(m), _group(g) {}
@@ -350,15 +350,15 @@ struct DaisyChannelWidget2 : ModuleWidget {
         addParam(createParamCentered<Trimpot>(Vec(RACK_GRID_WIDTH - 0, 240.0), module, DaisyChannel2::PAN_PARAM));
 
         // Mute
-        addParam(createLightParam<VCVLightLatch<MediumSimpleLight<RedLight >>> (Vec(RACK_GRID_WIDTH - 9.0, 254.0), module, DaisyChannel2::MUTE_PARAM, DaisyChannel2::MUTE_LIGHT));
+        addParam(createLightParam<VCVLightLatch<MediumSimpleLight<RedLight>>>(Vec(RACK_GRID_WIDTH - 9.0, 254.0), module, DaisyChannel2::MUTE_PARAM, DaisyChannel2::MUTE_LIGHT));
 
         // Link lights
-        addChild(createLightCentered<TinyLight<YellowLight >> (Vec(RACK_GRID_WIDTH - 4, 361.0f), module, DaisyChannel2::LINK_LIGHT_L));
-        addChild(createLightCentered<TinyLight<YellowLight >> (Vec(RACK_GRID_WIDTH + 4, 361.0f), module, DaisyChannel2::LINK_LIGHT_R));
+        addChild(createLightCentered<TinyLight<YellowLight>>(Vec(RACK_GRID_WIDTH - 4, 361.0f), module, DaisyChannel2::LINK_LIGHT_L));
+        addChild(createLightCentered<TinyLight<YellowLight>>(Vec(RACK_GRID_WIDTH + 4, 361.0f), module, DaisyChannel2::LINK_LIGHT_R));
 
         // Aux lights
-        addChild(createLightCentered<TinyLight<BlueLight >> (Vec(RACK_GRID_WIDTH - 10, 6.0f), module, DaisyChannel2::AUX1_LIGHT));
-        addChild(createLightCentered<TinyLight<BlueLight >> (Vec(RACK_GRID_WIDTH - 10, 11.0f), module, DaisyChannel2::AUX2_LIGHT));
+        addChild(createLightCentered<TinyLight<BlueLight>>(Vec(RACK_GRID_WIDTH - 10, 6.0f), module, DaisyChannel2::AUX1_LIGHT));
+        addChild(createLightCentered<TinyLight<BlueLight>>(Vec(RACK_GRID_WIDTH - 10, 11.0f), module, DaisyChannel2::AUX2_LIGHT));
 
         uiDivider.setDivision(DAISY_UI_DIVISION);
     }
@@ -384,4 +384,4 @@ struct DaisyChannelWidget2 : ModuleWidget {
     }
 };
 
-Model *modelDaisyChannel2 = createModel<DaisyChannel2, DaisyChannelWidget2>("DaisyChannel2");
+Model* modelDaisyChannel2 = createModel<DaisyChannel2, DaisyChannelWidget2>("DaisyChannel2");

@@ -317,4 +317,4 @@ struct HorsehairWidget : ModuleWidget {
     }
 };
 
-Model *modelHorsehair = createModel<Horsehair, HorsehairWidget>("Horsehair");
+Model* modelHorsehair = createModel<Horsehair, HorsehairWidget>("Horsehair");

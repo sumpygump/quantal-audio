@@ -33,7 +33,7 @@ struct DaisyMaster2 : Module {
         CHANNEL_SEP,
         NUM_MODELS
     };
-    Model *daisyModels[NUM_MODELS];
+    Model* daisyModels[NUM_MODELS];
     Vec widgetPos;
 
     DaisyMessage daisyMessages[2][1];
@@ -62,8 +62,8 @@ struct DaisyMaster2 : Module {
         daisyModels[CHANNEL_SEP] = rack::plugin::getModel("QuantalAudio", "DaisyBlank");
     }
 
-    json_t *dataToJson() override {
-        json_t *rootJ = json_object();
+    json_t* dataToJson() override {
+        json_t* rootJ = json_object();
 
         // mute
         json_object_set_new(rootJ, "muted", json_boolean(muted));
@@ -71,11 +71,12 @@ struct DaisyMaster2 : Module {
         return rootJ;
     }
 
-    void dataFromJson(json_t *rootJ) override {
+    void dataFromJson(json_t* rootJ) override {
         // mute
-        json_t *mutedJ = json_object_get(rootJ, "muted");
-        if (mutedJ)
+        json_t* mutedJ = json_object_get(rootJ, "muted");
+        if (mutedJ) {
             muted = json_is_true(mutedJ);
+        }
     }
 
     void process(const ProcessArgs &args) override {
@@ -90,12 +91,12 @@ struct DaisyMaster2 : Module {
         if (!muted) {
             // Get daisy-chained data from left-side linked module
             if (leftExpander.module && (
-                        leftExpander.module->model == modelDaisyChannel2
-                        || leftExpander.module->model == modelDaisyChannelVu
-                        || leftExpander.module->model == modelDaisyChannelSends2
-                        || leftExpander.module->model == modelDaisyBlank
-                    )) {
-                DaisyMessage *msgFromExpander = (DaisyMessage *)(leftExpander.consumerMessage);
+                    leftExpander.module->model == modelDaisyChannel2
+                    || leftExpander.module->model == modelDaisyChannelVu
+                    || leftExpander.module->model == modelDaisyChannelSends2
+                    || leftExpander.module->model == modelDaisyBlank
+                )) {
+                DaisyMessage* msgFromExpander = (DaisyMessage*)(leftExpander.consumerMessage);
 
                 channels = msgFromExpander->channels;
                 for (int c = 0; c < channels; c++) {
@@ -129,7 +130,7 @@ struct DaisyMaster2 : Module {
 
             // Set output to right-side linked VU meter module
             if (rightExpander.module && rightExpander.module->model == modelDaisyChannelVu) {
-                DaisyMessage *msgToModule = (DaisyMessage *)(rightExpander.module->leftExpander.producerMessage);
+                DaisyMessage* msgToModule = (DaisyMessage*)(rightExpander.module->leftExpander.producerMessage);
                 msgToModule->single_channels = channels;
                 for (int c = 0; c < channels; c++) {
                     msgToModule->single_voltages_l[c] = mix_l[c];
@@ -261,20 +262,20 @@ struct DaisyMasterWidget2 : ModuleWidget {
         addInput(createInput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH * 1.5 - (25.0 / 2), 96.0), module, DaisyMaster2::MIX_CV_INPUT));
 
         // Mute
-        addParam(createLightParam<VCVLightLatch<MediumSimpleLight<RedLight >>> (Vec(RACK_GRID_WIDTH * 1.5 - 9.0, 254.0), module, DaisyMaster2::MUTE_PARAM, DaisyMaster2::MUTE_LIGHT));
+        addParam(createLightParam<VCVLightLatch<MediumSimpleLight<RedLight>>>(Vec(RACK_GRID_WIDTH * 1.5 - 9.0, 254.0), module, DaisyMaster2::MUTE_PARAM, DaisyMaster2::MUTE_LIGHT));
 
         // Mix output
         addOutput(createOutput<ThemedPJ301MPort>(Vec((RACK_GRID_WIDTH * 1.5) - (25.0 / 2), 290.0), module, DaisyMaster2::MIX_OUTPUT_1));
         addOutput(createOutput<ThemedPJ301MPort>(Vec((RACK_GRID_WIDTH * 1.5) - (25.0 / 2), 316.0), module, DaisyMaster2::MIX_OUTPUT_2));
 
         // Link light
-        addChild(createLightCentered<TinyLight<YellowLight >> (Vec(RACK_GRID_WIDTH - 6, 361.0f), module, DaisyMaster2::LINK_LIGHT_L));
+        addChild(createLightCentered<TinyLight<YellowLight>>(Vec(RACK_GRID_WIDTH - 6, 361.0f), module, DaisyMaster2::LINK_LIGHT_L));
 
         uiDivider.setDivision(24);
     }
 
     void appendContextMenu(Menu *menu) override {
-        DaisyMaster2 *module = getModule<DaisyMaster2>();
+        DaisyMaster2* module = getModule<DaisyMaster2>();
 
         menu->addChild(new MenuSeparator);
         menu->addChild(createMenuItem("Create 1 channel", "", [ = ]() {
@@ -306,4 +307,4 @@ struct DaisyMasterWidget2 : ModuleWidget {
     }
 };
 
-Model *modelDaisyMaster2 = createModel<DaisyMaster2, DaisyMasterWidget2>("DaisyMaster2");
+Model* modelDaisyMaster2 = createModel<DaisyMaster2, DaisyMasterWidget2>("DaisyMaster2");

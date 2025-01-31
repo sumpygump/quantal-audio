@@ -89,4 +89,4 @@ struct BufferedMultWidget : ModuleWidget {
     }
 };
 
-Model *modelBufferedMult = createModel<BufferedMult, BufferedMultWidget>("BufferedMult");
+Model* modelBufferedMult = createModel<BufferedMult, BufferedMultWidget>("BufferedMult");
