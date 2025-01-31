@@ -15,13 +15,19 @@ SOURCES += $(wildcard src/*.cpp)
 
 # Add files to the ZIP package when running `make dist`
 # The compiled plugin is automatically added.
-DISTRIBUTABLES += $(wildcard LICENSE*) res
+DISTRIBUTABLES += $(wildcard LICENSE*) $(wildcard res/*.svg)
 
 # Include the VCV Rack plugin Makefile framework
 include $(RACK_DIR)/plugin.mk
 
+# Run `make dist` to prepare the distributed files
+# Run `make install` to install to local environment
+
+# To run the Makefile in the `res` directory: to generate the optimized
+# versions of module panel SVGs
 images:
 	$(MAKE) -C res
 
+# Run to lint and apply defined codestyle fixes
 lint:
 	astyle --suffix=none --options=.astylerc -r 'src/*'
