@@ -33,6 +33,8 @@ struct DaisyChannelVu : Module {
     float link_l = 0.f;
     float link_r = 0.f;
 
+    Vec widgetPos;
+
     dsp::ClockDivider lightDivider;
     dsp::VuMeter2 vuMeter[2];
 
@@ -54,6 +56,10 @@ struct DaisyChannelVu : Module {
         lightDivider.setDivision(512);
     }
 
+    void setWidgetPosition(Vec pos) {
+        widgetPos = pos;
+    }
+
     void process(const ProcessArgs &args) override {
 
         int chainChannels = 1;
@@ -67,6 +73,10 @@ struct DaisyChannelVu : Module {
         int aux2Channels = 1;
         float aux2Signals_l[16] = {};
         float aux2Signals_r[16] = {};
+
+        // Assume this module is the first in the chain; it will get
+        // overwritten if we receive a value from the left expander
+        Vec firstPos = widgetPos;
 
         // Get daisy-chained data from left-side linked module
         if (leftExpander.module && (
@@ -103,6 +113,8 @@ struct DaisyChannelVu : Module {
                 aux2Signals_r[c] = msgFromModule->aux2_voltages_r[c];
             }
 
+            firstPos = Vec(msgFromModule->first_pos_x, msgFromModule->first_pos_y);
+
             link_l = 0.8f;
         } else {
             vuMeter[0].process(args.sampleTime, 0.0f);
@@ -138,6 +150,9 @@ struct DaisyChannelVu : Module {
                 msgToModule->aux2_voltages_r[c] = aux2Signals_r[c];
             }
 
+            msgToModule->first_pos_x = firstPos.x;
+            msgToModule->first_pos_y = firstPos.y;
+
             rightExpander.module->leftExpander.messageFlipRequested = true;
 
             link_r = 0.8f;
@@ -158,6 +173,9 @@ struct DaisyChannelVu : Module {
 };
 
 struct DaisyChannelVuWidget : ModuleWidget {
+
+    dsp::ClockDivider uiDivider;
+
     DaisyChannelVuWidget(DaisyChannelVu *module) {
         setModule(module);
         setPanel(
@@ -187,6 +205,20 @@ struct DaisyChannelVuWidget : ModuleWidget {
             addChild(createLightCentered<VCVSliderLight<RedLight >> (Vec(RACK_GRID_WIDTH / 2 - 3.f, 339.f - i * 7), module, DaisyChannelVu::VU_LIGHTS_L + i));
             addChild(createLightCentered<VCVSliderLight<RedLight >> (Vec(RACK_GRID_WIDTH / 2 + 3.f, 339.f - i * 7), module, DaisyChannelVu::VU_LIGHTS_R + i));
         }
+
+        uiDivider.setDivision(DAISY_UI_DIVISION);
+    }
+
+    void step() override {
+        if (uiDivider.process()) {
+            DaisyChannelVu *module = getModule<DaisyChannelVu>();
+
+            if (this->box.pos.x > 0.00) {
+                module->setWidgetPosition(this->box.pos);
+            }
+        }
+
+        ModuleWidget::step();
     }
 };
 

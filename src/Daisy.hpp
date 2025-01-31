@@ -4,6 +4,9 @@
 // Hypothetically the max number of channels that could be chained
 const float DAISY_DIVISOR = 16.f;
 
+// How frequently the UI step is processed
+const int DAISY_UI_DIVISION = 128;
+
 struct DaisyMessage {
     // Daisy-chained mix signal
     int channels = 1;

@@ -33,6 +33,9 @@ struct DaisyChannel2 : Module {
     float link_r = 0.f;
     float aux1_send_amt = 0.f;
     float aux2_send_amt = 0.f;
+
+    Vec widgetPos;
+
     dsp::ClockDivider lightDivider;
 
     DaisyMessage daisyInputMessage[2][1];
@@ -94,6 +97,10 @@ struct DaisyChannel2 : Module {
         }
     }
 
+    void setWidgetPosition(Vec pos) {
+        widgetPos = pos;
+    }
+
     void onReset() override {
         aux1_send_amt = 0.0f;
         aux2_send_amt = 0.0f;
@@ -115,6 +122,10 @@ struct DaisyChannel2 : Module {
         int aux2Channels = 1;
         float aux2Signals_l[16] = {};
         float aux2Signals_r[16] = {};
+
+        // Assume this module is the first in the chain; it will get
+        // overwritten if we receive a value from the left expander
+        Vec firstPos = widgetPos;
 
         // Get inputs from this channel strip
         if (!muted) {
@@ -178,6 +189,8 @@ struct DaisyChannel2 : Module {
                 aux2Signals_r[c] = msgFromModule->aux2_voltages_r[c];
             }
 
+            firstPos = Vec(msgFromModule->first_pos_x, msgFromModule->first_pos_y);
+
             link_l = 0.8f;
         } else {
             link_l = 0.0f;
@@ -225,6 +238,9 @@ struct DaisyChannel2 : Module {
                 msgToModule->voltages_l[c] = daisySignals_l[c];
                 msgToModule->voltages_r[c] = daisySignals_r[c];
             }
+
+            msgToModule->first_pos_x = firstPos.x;
+            msgToModule->first_pos_y = firstPos.y;
 
             rightExpander.module->leftExpander.messageFlipRequested = true;
 
@@ -306,6 +322,9 @@ struct DaisyMenuSlider : ui::Slider {
 };
 
 struct DaisyChannelWidget2 : ModuleWidget {
+
+    dsp::ClockDivider uiDivider;
+
     DaisyChannelWidget2(DaisyChannel2 *module) {
         setModule(module);
         setPanel(
@@ -340,11 +359,24 @@ struct DaisyChannelWidget2 : ModuleWidget {
         // Aux lights
         addChild(createLightCentered<TinyLight<BlueLight >> (Vec(RACK_GRID_WIDTH - 10, 6.0f), module, DaisyChannel2::AUX1_LIGHT));
         addChild(createLightCentered<TinyLight<BlueLight >> (Vec(RACK_GRID_WIDTH - 10, 11.0f), module, DaisyChannel2::AUX2_LIGHT));
+
+        uiDivider.setDivision(DAISY_UI_DIVISION);
+    }
+
+    void step() override {
+        if (uiDivider.process()) {
+            DaisyChannel2 *module = getModule<DaisyChannel2>();
+
+            if (this->box.pos.x > 0.00) {
+                module->setWidgetPosition(this->box.pos);
+            }
+        }
+
+        ModuleWidget::step();
     }
 
     void appendContextMenu(Menu *menu) override {
-        DaisyChannel2 *module = dynamic_cast<DaisyChannel2 *>(this->module);
-        assert(module);
+        DaisyChannel2 *module = getModule<DaisyChannel2>();
 
         menu->addChild(new MenuSeparator);
         menu->addChild(new DaisyMenuSlider<SendQuantity, 1>(module)); // Aux send group 1

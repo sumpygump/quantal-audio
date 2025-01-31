@@ -21,6 +21,9 @@ struct DaisyBlank : Module {
     float link_r = 0.f;
     float aux1_send_amt = 0.f;
     float aux2_send_amt = 0.f;
+
+    Vec widgetPos;
+
     dsp::ClockDivider lightDivider;
 
     DaisyMessage daisyInputMessage[2][1];
@@ -41,6 +44,10 @@ struct DaisyBlank : Module {
         lightDivider.setDivision(512);
     }
 
+    void setWidgetPosition(Vec pos) {
+        widgetPos = pos;
+    }
+
     void process(const ProcessArgs &args) override {
 
         int chainChannels = 1;
@@ -52,6 +59,10 @@ struct DaisyBlank : Module {
         int aux2Channels = 1;
         float aux2Signals_l[16] = {};
         float aux2Signals_r[16] = {};
+
+        // Assume this module is the first in the chain; it will get
+        // overwritten if we receive a value from the left expander
+        Vec firstPos = widgetPos;
 
         // Get daisy-chained data from left-side linked module
         if (leftExpander.module && (
@@ -78,6 +89,8 @@ struct DaisyBlank : Module {
                 aux2Signals_l[c] = msgFromModule->aux2_voltages_l[c];
                 aux2Signals_r[c] = msgFromModule->aux2_voltages_r[c];
             }
+
+            firstPos = Vec(msgFromModule->first_pos_x, msgFromModule->first_pos_y);
 
             link_l = 0.8f;
         } else {
@@ -112,6 +125,9 @@ struct DaisyBlank : Module {
                 msgToModule->aux2_voltages_r[c] = aux2Signals_r[c];
             }
 
+            msgToModule->first_pos_x = firstPos.x;
+            msgToModule->first_pos_y = firstPos.y;
+
             rightExpander.module->leftExpander.messageFlipRequested = true;
 
             link_r = 0.8f;
@@ -128,6 +144,9 @@ struct DaisyBlank : Module {
 };
 
 struct DaisyBlankWidget : ModuleWidget {
+
+    dsp::ClockDivider uiDivider;
+
     DaisyBlankWidget(DaisyBlank *module) {
         setModule(module);
         setPanel(
@@ -144,6 +163,20 @@ struct DaisyBlankWidget : ModuleWidget {
         // Link lights
         addChild(createLightCentered<TinyLight<YellowLight>>(Vec(RACK_GRID_WIDTH - 4, 361.0f), module, DaisyBlank::LINK_LIGHT_L));
         addChild(createLightCentered<TinyLight<YellowLight>>(Vec(RACK_GRID_WIDTH + 4, 361.0f), module, DaisyBlank::LINK_LIGHT_R));
+
+        uiDivider.setDivision(DAISY_UI_DIVISION);
+    }
+
+    void step() override {
+        if (uiDivider.process()) {
+            DaisyBlank *module = getModule<DaisyBlank>();
+
+            if (this->box.pos.x > 0.00) {
+                module->setWidgetPosition(this->box.pos);
+            }
+        }
+
+        ModuleWidget::step();
     }
 };
 

@@ -27,6 +27,9 @@ struct DaisyChannelSends2 : Module {
     int group = 1;
     float link_l = 0.f;
     float link_r = 0.f;
+
+    Vec widgetPos;
+
     dsp::ClockDivider lightDivider;
     dsp::SchmittTrigger groupChangeTrigger;
 
@@ -70,6 +73,10 @@ struct DaisyChannelSends2 : Module {
         }
     }
 
+    void setWidgetPosition(Vec pos) {
+        widgetPos = pos;
+    }
+
     void process(const ProcessArgs &args) override {
         int chainChannels = 1;
         float mix_l[16] = {};
@@ -83,6 +90,10 @@ struct DaisyChannelSends2 : Module {
         int aux2Channels = 1;
         float aux2Signals_l[16] = {};
         float aux2Signals_r[16] = {};
+
+        // Assume this module is the first in the chain; it will get
+        // overwritten if we receive a value from the left expander
+        Vec firstPos = widgetPos;
 
         bool groupButton = params[GROUP_PARAM].getValue() > 0.f;
         if (groupChangeTrigger.process(params[GROUP_PARAM].getValue())) {
@@ -133,6 +144,8 @@ struct DaisyChannelSends2 : Module {
                 }
             }
 
+            firstPos = Vec(msgFromModule->first_pos_x, msgFromModule->first_pos_y);
+
             link_l = 0.8f;
         } else {
             link_l = 0.0f;
@@ -165,6 +178,9 @@ struct DaisyChannelSends2 : Module {
                 msgToModule->aux2_voltages_l[c] = aux2Signals_l[c];
                 msgToModule->aux2_voltages_r[c] = aux2Signals_r[c];
             }
+
+            msgToModule->first_pos_x = firstPos.x;
+            msgToModule->first_pos_y = firstPos.y;
 
             link_r = 0.8f;
         } else {
@@ -216,6 +232,9 @@ struct DaisyChannelSends2 : Module {
 };
 
 struct DaisyChannelSendsWidget2 : ModuleWidget {
+
+    dsp::ClockDivider uiDivider;
+
     DaisyChannelSendsWidget2(DaisyChannelSends2 *module) {
         setModule(module);
         setPanel(
@@ -230,7 +249,6 @@ struct DaisyChannelSendsWidget2 : ModuleWidget {
         addChild(createWidget<ThemedScrew>(Vec(0, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
         // Switch
-        //addParam(createLightParamCentered<VCVLightBezel<>>(Vec(RACK_GRID_WIDTH - 0, 57.5f), module, DaisyChannelSends2::GROUP_PARAM, DaisyChannelSends2::GROUP_BTN_LIGHT));
         addParam(createLightParamCentered<VCVLightButton<MediumSimpleLight<WhiteLight >>> (Vec(RACK_GRID_WIDTH - 0, 57.5f), module, DaisyChannelSends2::GROUP_PARAM, DaisyChannelSends2::GROUP_BTN_LIGHT));
         addChild(createLightCentered<SmallLight<BlueLight >> (Vec(RACK_GRID_WIDTH - 2, 80.0f), module, DaisyChannelSends2::GROUP1_LIGHT));
         addChild(createLightCentered<SmallLight<BlueLight >> (Vec(RACK_GRID_WIDTH - 2, 90.0f), module, DaisyChannelSends2::GROUP2_LIGHT));
@@ -242,6 +260,18 @@ struct DaisyChannelSendsWidget2 : ModuleWidget {
         // Link lights
         addChild(createLightCentered<TinyLight<YellowLight >> (Vec(RACK_GRID_WIDTH - 4, 361.0f), module, DaisyChannelSends2::LINK_LIGHT_L));
         addChild(createLightCentered<TinyLight<YellowLight >> (Vec(RACK_GRID_WIDTH + 4, 361.0f), module, DaisyChannelSends2::LINK_LIGHT_R));
+    }
+
+    void step() override {
+        if (uiDivider.process()) {
+            DaisyChannelSends2 *module = getModule<DaisyChannelSends2>();
+
+            if (this->box.pos.x > 0.00) {
+                module->setWidgetPosition(this->box.pos);
+            }
+        }
+
+        ModuleWidget::step();
     }
 };
 
