@@ -23,12 +23,19 @@ struct DaisyChannel2 : Module {
         MUTE_LIGHT,
         LINK_LIGHT_L,
         LINK_LIGHT_R,
+        AUX1_LIGHT,
+        AUX2_LIGHT,
         NUM_LIGHTS
     };
 
     bool muted = false;
     float link_l = 0.f;
     float link_r = 0.f;
+    float aux1_send_amt = 0.f;
+    float aux2_send_amt = 0.f;
+
+    Vec widgetPos;
+
     dsp::ClockDivider lightDivider;
 
     DaisyMessage daisyInputMessage[2][1];
@@ -59,37 +66,68 @@ struct DaisyChannel2 : Module {
         lightDivider.setDivision(512);
     }
 
-    json_t *dataToJson() override {
-        json_t *rootJ = json_object();
+    json_t* dataToJson() override {
+        json_t* rootJ = json_object();
 
         // mute
         json_object_set_new(rootJ, "muted", json_boolean(muted));
+        json_object_set_new(rootJ, "aux1_send_amt", json_real(aux1_send_amt));
+        json_object_set_new(rootJ, "aux2_send_amt", json_real(aux2_send_amt));
 
         return rootJ;
     }
 
-    void dataFromJson(json_t *rootJ) override {
+    void dataFromJson(json_t* rootJ) override {
         // mute
-        json_t *mutedJ = json_object_get(rootJ, "muted");
-        if (mutedJ)
+        json_t* mutedJ = json_object_get(rootJ, "muted");
+        if (mutedJ) {
             muted = json_is_true(mutedJ);
+        }
+
+        // aux 1
+        json_t* aux1_send_amtJ = json_object_get(rootJ, "aux1_send_amt");
+        if (aux1_send_amtJ) {
+            aux1_send_amt = std::max(0.0f, (float) json_real_value(aux1_send_amtJ));
+        }
+
+        // aux 2
+        json_t* aux2_send_amtJ = json_object_get(rootJ, "aux2_send_amt");
+        if (aux2_send_amtJ) {
+            aux2_send_amt = std::max(0.0f, (float) json_real_value(aux2_send_amtJ));
+        }
+    }
+
+    void setWidgetPosition(Vec pos) {
+        widgetPos = pos;
+    }
+
+    void onReset() override {
+        aux1_send_amt = 0.0f;
+        aux2_send_amt = 0.0f;
     }
 
     void process(const ProcessArgs &args) override {
         muted = params[MUTE_PARAM].getValue() > 0.f;
 
+        int channels = 1;
+        int chainChannels = 1;
         float signals_l[16] = {};
         float signals_r[16] = {};
         float daisySignals_l[16] = {};
         float daisySignals_r[16] = {};
-        int channels = 1;
-        int maxChannels = 1;
-        int chainChannels = 1;
+        float aux1Signals_l[16] = {};
+        float aux1Signals_r[16] = {};
+        float aux2Signals_l[16] = {};
+        float aux2Signals_r[16] = {};
+
+        // Assume this module is the first in the chain; it will get
+        // overwritten if we receive a value from the left expander
+        Vec firstPos = widgetPos;
 
         // Get inputs from this channel strip
         if (!muted) {
-            float gain = params[CH_LVL_PARAM].getValue();
-            float pan = params[PAN_PARAM].getValue();
+            const float gain = params[CH_LVL_PARAM].getValue();
+            const float pan = params[PAN_PARAM].getValue();
 
             channels = std::max(inputs[CH_INPUT_1].getChannels(), inputs[CH_INPUT_2].getChannels());
 
@@ -102,13 +140,13 @@ struct DaisyChannel2 : Module {
             }
 
             for (int c = 0; c < channels; c++) {
-                signals_l[c] *= std::pow(gain, 2.f) * std::cos(M_PI * (pan + 1) / 4);
-                signals_r[c] *= std::pow(gain, 2.f) * std::sin(M_PI * (pan + 1) / 4);
+                signals_l[c] *= std::cos(M_PI * (pan + 1.0) / 4.0) * std::pow(gain, 2.f);
+                signals_r[c] *= std::sin(M_PI * (pan + 1.0) / 4.0) * std::pow(gain, 2.f);
             }
 
             if (inputs[LVL_CV_INPUT].isConnected()) {
                 for (int c = 0; c < channels; c++) {
-                    float _cv = clamp(inputs[LVL_CV_INPUT].getPolyVoltage(c) / 10.f, 0.f, 1.f);
+                    const float _cv = clamp(inputs[LVL_CV_INPUT].getPolyVoltage(c) / 10.f, 0.f, 1.f);
                     signals_l[c] *= _cv;
                     signals_r[c] *= _cv;
                 }
@@ -124,33 +162,50 @@ struct DaisyChannel2 : Module {
 
         // Get daisy-chained data from left-side linked module
         if (leftExpander.module && (
-            leftExpander.module->model == modelDaisyChannel2
-            || leftExpander.module->model == modelDaisyChannelVu
-            || leftExpander.module->model == modelDaisyChannelSends2
-        )) {
-            DaisyMessage *msgFromModule = (DaisyMessage *)(leftExpander.consumerMessage);
+                leftExpander.module->model == modelDaisyChannel2
+                || leftExpander.module->model == modelDaisyChannelVu
+                || leftExpander.module->model == modelDaisyChannelSends2
+                || leftExpander.module->model == modelDaisyBlank
+            )) {
+            const DaisyMessage* msgFromModule = static_cast<DaisyMessage*>(leftExpander.consumerMessage);
             chainChannels = msgFromModule->channels;
             for (int c = 0; c < chainChannels; c++) {
                 daisySignals_l[c] = msgFromModule->voltages_l[c];
                 daisySignals_r[c] = msgFromModule->voltages_r[c];
             }
+
+            const int aux1Channels = msgFromModule->aux1_channels;
+            for (int c = 0; c < aux1Channels; c++) {
+                aux1Signals_l[c] = msgFromModule->aux1_voltages_l[c];
+                aux1Signals_r[c] = msgFromModule->aux1_voltages_r[c];
+            }
+
+            const int aux2Channels = msgFromModule->aux2_channels;
+            for (int c = 0; c < aux2Channels; c++) {
+                aux2Signals_l[c] = msgFromModule->aux2_voltages_l[c];
+                aux2Signals_r[c] = msgFromModule->aux2_voltages_r[c];
+            }
+
+            firstPos = Vec(msgFromModule->first_pos_x, msgFromModule->first_pos_y);
+
             link_l = 0.8f;
         } else {
             link_l = 0.0f;
         }
 
-        maxChannels = std::max(chainChannels, channels);
+        const int maxChannels = std::max(chainChannels, channels);
 
         // Set daisy-chained output to right-side linked module
         if (rightExpander.module && (
-            rightExpander.module->model == modelDaisyMaster2
-            || rightExpander.module->model == modelDaisyChannel2
-            || rightExpander.module->model == modelDaisyChannelVu
-            || rightExpander.module->model == modelDaisyChannelSends2
-        )) {
-            DaisyMessage *msgToModule = (DaisyMessage *)(rightExpander.module->leftExpander.producerMessage);
+                rightExpander.module->model == modelDaisyMaster2
+                || rightExpander.module->model == modelDaisyChannel2
+                || rightExpander.module->model == modelDaisyChannelVu
+                || rightExpander.module->model == modelDaisyChannelSends2
+                || rightExpander.module->model == modelDaisyBlank
+            )) {
+            DaisyMessage* msgToModule = static_cast<DaisyMessage*>(rightExpander.module->leftExpander.producerMessage);
 
-            // Write this module's output to the producer message
+            // Write this module's output along to single voltages pipe
             msgToModule->single_channels = channels;
             for (int c = 0; c < channels; c++) {
                 msgToModule->single_voltages_l[c] = signals_l[c];
@@ -163,12 +218,26 @@ struct DaisyChannel2 : Module {
                 daisySignals_r[c] += signals_r[c] / DAISY_DIVISOR;
             }
 
+            // Combine/pass through the aux send voltages
+            msgToModule->aux1_channels = maxChannels;
+            msgToModule->aux2_channels = maxChannels;
+            for (int c = 0; c < maxChannels; c++) {
+                msgToModule->aux1_voltages_l[c] = aux1Signals_l[c] + (aux1_send_amt * signals_l[c]);
+                msgToModule->aux1_voltages_r[c] = aux1Signals_r[c] + (aux1_send_amt * signals_r[c]);
+
+                msgToModule->aux2_voltages_l[c] = aux2Signals_l[c] + (aux2_send_amt * signals_l[c]);
+                msgToModule->aux2_voltages_r[c] = aux2Signals_r[c] + (aux2_send_amt * signals_r[c]);
+            }
+
             // Write daisy-chain signal to producer message
             msgToModule->channels = maxChannels;
             for (int c = 0; c < maxChannels; c++) {
                 msgToModule->voltages_l[c] = daisySignals_l[c];
                 msgToModule->voltages_r[c] = daisySignals_r[c];
             }
+
+            msgToModule->first_pos_x = firstPos.x;
+            msgToModule->first_pos_y = firstPos.y;
 
             rightExpander.module->leftExpander.messageFlipRequested = true;
 
@@ -182,37 +251,134 @@ struct DaisyChannel2 : Module {
             lights[MUTE_LIGHT].value = (muted);
             lights[LINK_LIGHT_L].setBrightness(link_l);
             lights[LINK_LIGHT_R].setBrightness(link_r);
+            lights[AUX1_LIGHT].setBrightness(aux1_send_amt);
+            lights[AUX2_LIGHT].setBrightness(aux2_send_amt);
         }
     }
 };
 
+// Struct for keeping track of the value in the right click menu for the aux sends
+struct SendQuantity : Quantity {
+    DaisyChannel2* _module;
+    int _group;
+
+    SendQuantity(DaisyChannel2 *m, int g) : _module(m), _group(g) {}
+
+    void setValue(float value) override {
+        value = clamp(value, getMinValue(), getMaxValue());
+        if (_module && _group == 1) {
+            _module->aux1_send_amt = value;
+        }
+        if (_module && _group == 2) {
+            _module->aux2_send_amt = value;
+        }
+    }
+
+    float getValue() override {
+        if (_module && _group == 1) {
+            return _module->aux1_send_amt;
+        }
+        if (_module && _group == 2) {
+            return _module->aux2_send_amt;
+        }
+        return getDefaultValue();
+    }
+
+    float getMinValue() override {
+        return 0.0f;
+    }
+    float getMaxValue() override {
+        return 1.0f;
+    }
+    float getDefaultValue() override {
+        return 0.f;
+    }
+    float getDisplayValue() override {
+        return roundf(100.0f * getValue());
+    }
+    void setDisplayValue(float displayValue) override {
+        setValue(displayValue / 100.0f);
+    }
+    std::string getLabel() override {
+        return string::f("Aux Group %d Send Amt", _group);
+    }
+    std::string getUnit() override {
+        return "%";
+    }
+};
+
+template<class Q, int g>
+struct DaisyMenuSlider : ui::Slider {
+    explicit DaisyMenuSlider(DaisyChannel2 *module) {
+        quantity = new Q(module, g);
+        box.size.x = 200.0f;
+    }
+    virtual ~DaisyMenuSlider() {
+        delete quantity;
+    }
+};
+
 struct DaisyChannelWidget2 : ModuleWidget {
-    DaisyChannelWidget2(DaisyChannel2 *module) {
+
+    dsp::ClockDivider uiDivider;
+
+    explicit DaisyChannelWidget2(DaisyChannel2 *module) {
         setModule(module);
-        setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/DaisyChannel2.svg")));
+        setPanel(
+            createPanel(
+                asset::plugin(pluginInstance, "res/DaisyChannel2.svg"),
+                asset::plugin(pluginInstance, "res/DaisyChannel2-dark.svg")
+            )
+        );
 
         // Screws
-        addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
-        addChild(createWidget<ScrewSilver>(Vec(0, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+        addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, 0)));
+        addChild(createWidget<ThemedScrew>(Vec(0, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
         // Channel Input/Output
-        addInput(createInput<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 45.0), module, DaisyChannel2::CH_INPUT_1));
-        addInput(createInput<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 71.0), module, DaisyChannel2::CH_INPUT_2));
-        addOutput(createOutput<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 290.0), module, DaisyChannel2::CH_OUTPUT_1));
-        addOutput(createOutput<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 316.0), module, DaisyChannel2::CH_OUTPUT_2));
+        addInput(createInput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5f, 45.0), module, DaisyChannel2::CH_INPUT_1));
+        addInput(createInput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5f, 71.0), module, DaisyChannel2::CH_INPUT_2));
+        addOutput(createOutput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5f, 290.0), module, DaisyChannel2::CH_OUTPUT_1));
+        addOutput(createOutput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5f, 316.0), module, DaisyChannel2::CH_OUTPUT_2));
 
         // Level & CV
-        addInput(createInput<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 110.0), module, DaisyChannel2::LVL_CV_INPUT));
-        addParam(createParam<LEDSliderGreen>(Vec(RACK_GRID_WIDTH - 10.5, 138.4), module, DaisyChannel2::CH_LVL_PARAM));
+        addInput(createInput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5f, 110.0), module, DaisyChannel2::LVL_CV_INPUT));
+        addParam(createParam<LEDSliderGreen>(Vec(RACK_GRID_WIDTH - 10.5f, 138.4), module, DaisyChannel2::CH_LVL_PARAM));
         addParam(createParamCentered<Trimpot>(Vec(RACK_GRID_WIDTH - 0, 240.0), module, DaisyChannel2::PAN_PARAM));
 
         // Mute
-        addParam(createLightParam<VCVLightLatch<MediumSimpleLight<RedLight>>>(Vec(RACK_GRID_WIDTH - 9.0, 254.0), module, DaisyChannel2::MUTE_PARAM, DaisyChannel2::MUTE_LIGHT));
+        addParam(createLightParam<VCVLightLatch<MediumSimpleLight<RedLight>>>(Vec(RACK_GRID_WIDTH - 9.0f, 254.0), module, DaisyChannel2::MUTE_PARAM, DaisyChannel2::MUTE_LIGHT));
 
         // Link lights
         addChild(createLightCentered<TinyLight<YellowLight>>(Vec(RACK_GRID_WIDTH - 4, 361.0f), module, DaisyChannel2::LINK_LIGHT_L));
         addChild(createLightCentered<TinyLight<YellowLight>>(Vec(RACK_GRID_WIDTH + 4, 361.0f), module, DaisyChannel2::LINK_LIGHT_R));
+
+        // Aux lights
+        addChild(createLightCentered<TinyLight<BlueLight>>(Vec(RACK_GRID_WIDTH - 10, 6.0f), module, DaisyChannel2::AUX1_LIGHT));
+        addChild(createLightCentered<TinyLight<BlueLight>>(Vec(RACK_GRID_WIDTH - 10, 11.0f), module, DaisyChannel2::AUX2_LIGHT));
+
+        uiDivider.setDivision(DAISY_UI_DIVISION);
+    }
+
+    void step() override {
+        if (uiDivider.process()) {
+            DaisyChannel2 *module = getModule<DaisyChannel2>();
+
+            if (this->box.pos.x > 0.00) {
+                module->setWidgetPosition(this->box.pos);
+            }
+        }
+
+        ModuleWidget::step();
+    }
+
+    void appendContextMenu(Menu *menu) override {
+        DaisyChannel2 *module = getModule<DaisyChannel2>();
+
+        menu->addChild(new MenuSeparator);
+        menu->addChild(new DaisyMenuSlider<SendQuantity, 1>(module)); // Aux send group 1
+        menu->addChild(new DaisyMenuSlider<SendQuantity, 2>(module)); // Aux send group 2
     }
 };
 
-Model *modelDaisyChannel2 = createModel<DaisyChannel2, DaisyChannelWidget2>("DaisyChannel2");
+Model* modelDaisyChannel2 = createModel<DaisyChannel2, DaisyChannelWidget2>("DaisyChannel2");

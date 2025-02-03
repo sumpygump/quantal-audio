@@ -39,8 +39,8 @@ struct DaisyChannel : Module {
         configOutput(CHAIN_OUTPUT, "Daisy chain");
     }
 
-    json_t *dataToJson() override {
-        json_t *rootJ = json_object();
+    json_t* dataToJson() override {
+        json_t* rootJ = json_object();
 
         // mute
         json_object_set_new(rootJ, "muted", json_boolean(muted));
@@ -48,11 +48,12 @@ struct DaisyChannel : Module {
         return rootJ;
     }
 
-    void dataFromJson(json_t *rootJ) override {
+    void dataFromJson(json_t* rootJ) override {
         // mute
-        json_t *mutedJ = json_object_get(rootJ, "muted");
-        if (mutedJ)
+        json_t* mutedJ = json_object_get(rootJ, "muted");
+        if (mutedJ) {
             muted = json_is_true(mutedJ);
+        }
     }
 
     void process(const ProcessArgs &args) override {
@@ -63,18 +64,16 @@ struct DaisyChannel : Module {
         float signals[16] = {};
         int channels = 1;
         if (!muted) {
-            //ch = inputs[CH_INPUT].getVoltage();
             channels = inputs[CH_INPUT].getChannels();
             inputs[CH_INPUT].readVoltages(signals);
-            float gain = params[CH_LVL_PARAM].getValue();
+            const float gain = params[CH_LVL_PARAM].getValue();
             for (int c = 0; c < channels; c++) {
                 signals[c] *= std::pow(gain, 2.f);
             }
-            //ch *= powf(params[CH_LVL_PARAM].getValue(), 2.f);
 
             if (inputs[LVL_CV_INPUT].isConnected()) {
                 for (int c = 0; c < channels; c++) {
-                    float _cv = clamp(inputs[LVL_CV_INPUT].getPolyVoltage(c) / 10.f, 0.f, 1.f);
+                    const float _cv = clamp(inputs[LVL_CV_INPUT].getPolyVoltage(c) / 10.f, 0.f, 1.f);
                     signals[c] *= _cv;
                 }
             }
@@ -84,7 +83,7 @@ struct DaisyChannel : Module {
         outputs[CH_OUTPUT].writeVoltages(signals);
 
         float daisySignals[16] = {};
-        int maxChannels = std::max(inputs[CHAIN_INPUT].getChannels(), channels);
+        const int maxChannels = std::max(inputs[CHAIN_INPUT].getChannels(), channels);
 
         // Make the voltage small to the chain by dividing by the divisor;
         inputs[CHAIN_INPUT].readVoltages(daisySignals);
@@ -95,36 +94,40 @@ struct DaisyChannel : Module {
         outputs[CHAIN_OUTPUT].setChannels(maxChannels);
         outputs[CHAIN_OUTPUT].writeVoltages(daisySignals);
 
-        //outputs[CHAIN_OUTPUT].setVoltage(inputs[CHAIN_INPUT].getVoltage() + ch / DAISY_DIVISOR);
         lights[MUTE_LIGHT].value = (muted);
     }
 };
 
 struct DaisyChannelWidget : ModuleWidget {
-    DaisyChannelWidget(DaisyChannel *module) {
+    explicit DaisyChannelWidget(DaisyChannel *module) {
         setModule(module);
-        setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/DaisyChannel.svg")));
+        setPanel(
+            createPanel(
+                asset::plugin(pluginInstance, "res/DaisyChannel.svg"),
+                asset::plugin(pluginInstance, "res/DaisyChannel-dark.svg")
+            )
+        );
 
         // Screws
-        addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
-        addChild(createWidget<ScrewSilver>(Vec(0, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+        addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, 0)));
+        addChild(createWidget<ThemedScrew>(Vec(0, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
         // Channel Input/Output
-        addInput(createInput<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 50.0), module, DaisyChannel::CH_INPUT));
-        addOutput(createOutput<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 245.0), module, DaisyChannel::CH_OUTPUT));
+        addInput(createInput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5f, 50.0), module, DaisyChannel::CH_INPUT));
+        addOutput(createOutput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5f, 245.0), module, DaisyChannel::CH_OUTPUT));
 
         // Level & CV
-        addParam(createParam<LEDSliderGreen>(Vec(RACK_GRID_WIDTH - 10.5, 121.4), module, DaisyChannel::CH_LVL_PARAM));
-        addInput(createInput<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 89.0), module, DaisyChannel::LVL_CV_INPUT));
+        addParam(createParam<LEDSliderGreen>(Vec(RACK_GRID_WIDTH - 10.5f, 121.4), module, DaisyChannel::CH_LVL_PARAM));
+        addInput(createInput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5f, 89.0), module, DaisyChannel::LVL_CV_INPUT));
 
         // Mute
-        addParam(createParam<LEDButton>(Vec(RACK_GRID_WIDTH - 9.0, 206.0), module, DaisyChannel::MUTE_PARAM));
-        addChild(createLight<MediumLight<RedLight>>(Vec(RACK_GRID_WIDTH - 4.5, 210.25f), module, DaisyChannel::MUTE_LIGHT));
+        addParam(createParam<LEDButton>(Vec(RACK_GRID_WIDTH - 9.0f, 206.0), module, DaisyChannel::MUTE_PARAM));
+        addChild(createLight<MediumLight<RedLight>>(Vec(RACK_GRID_WIDTH - 4.5f, 210.25f), module, DaisyChannel::MUTE_LIGHT));
 
         // Chain Input/Output
-        addInput(createInput<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 290.5), module, DaisyChannel::CHAIN_INPUT));
-        addOutput(createOutput<PJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5, 320.0), module, DaisyChannel::CHAIN_OUTPUT));
+        addInput(createInput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5f, 290.5), module, DaisyChannel::CHAIN_INPUT));
+        addOutput(createOutput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5f, 320.0), module, DaisyChannel::CHAIN_OUTPUT));
     }
 };
 
-Model *modelDaisyChannel = createModel<DaisyChannel, DaisyChannelWidget>("DaisyChannel");
+Model* modelDaisyChannel = createModel<DaisyChannel, DaisyChannelWidget>("DaisyChannel");

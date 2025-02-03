@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="15" height="380">
     <g id="base">
-        <path d="M0 0h15v380H0z" fill="#ababab"/>
-        <path d="M.3.3h14.4v379.4H0z" fill="#e6e6e6"/>
+        <path d="M0 0h15v380H0z" fill="#171717"/>
+        <path d="M.3.3h14.4v379.4H0z" fill="#2a2a2a"/>
     </g>
     <g id="label_bgs">
         <path d="M.3 16h14.4v16H0z" fill="#c91847"/>
@@ -18,7 +18,7 @@
         <text id="heading" x="0" y="28" style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:'Envy Code R';-inkscape-font-specification:'Envy Code R';letter-spacing:0px;word-spacing:0px;fill: #ffffff;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;">
             <tspan x="0.5" y="28" style="font-size: 12.5px;">VU</tspan>
         </text>
-        <text id="small_labels_white" x="0" y="262" style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Envy Code R';-inkscape-font-specification:'Envy Code R';letter-spacing:0px;word-spacing:0px;fill: #ffffff;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;">
+        <text id="small_labels_white" x="0" y="262" style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Envy Code R';-inkscape-font-specification:'Envy Code R';letter-spacing:0px;word-spacing:0px;fill: #171717;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;">
             <tspan x="3" y="356" style="font-size: 8px;">DS</tspan>
         </text>
     </g>
