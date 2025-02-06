@@ -50,7 +50,7 @@ struct DaisyChannel : Module {
 
     void dataFromJson(json_t* rootJ) override {
         // mute
-        json_t* mutedJ = json_object_get(rootJ, "muted");
+        const json_t* mutedJ = json_object_get(rootJ, "muted");
         if (mutedJ) {
             muted = json_is_true(mutedJ);
         }

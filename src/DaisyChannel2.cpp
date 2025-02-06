@@ -82,25 +82,25 @@ struct DaisyChannel2 : Module {
 
     void dataFromJson(json_t* rootJ) override {
         // mute
-        json_t* mutedJ = json_object_get(rootJ, "muted");
+        const json_t* mutedJ = json_object_get(rootJ, "muted");
         if (mutedJ) {
             muted = json_is_true(mutedJ);
         }
 
         // aux 1
-        json_t* aux1_send_amtJ = json_object_get(rootJ, "aux1_send_amt");
+        const json_t* aux1_send_amtJ = json_object_get(rootJ, "aux1_send_amt");
         if (aux1_send_amtJ) {
-            aux1_send_amt = std::max(0.0f, (float) json_real_value(aux1_send_amtJ));
+            aux1_send_amt = std::max(0.0f, static_cast<float>(json_real_value(aux1_send_amtJ)));
         }
 
         // aux 2
-        json_t* aux2_send_amtJ = json_object_get(rootJ, "aux2_send_amt");
+        const json_t* aux2_send_amtJ = json_object_get(rootJ, "aux2_send_amt");
         if (aux2_send_amtJ) {
-            aux2_send_amt = std::max(0.0f, (float) json_real_value(aux2_send_amtJ));
+            aux2_send_amt = std::max(0.0f, static_cast<float>(json_real_value(aux2_send_amtJ)));
         }
     }
 
-    void setWidgetPosition(Vec pos) {
+    void setWidgetPosition(const Vec pos) {
         widgetPos = pos;
     }
 
@@ -143,8 +143,8 @@ struct DaisyChannel2 : Module {
             }
 
             for (int c = 0; c < channels; c++) {
-                signals_l[c] *= std::cos(M_PI * (pan + 1.0) / 4.0) * std::pow(gain, 2.f);
-                signals_r[c] *= std::sin(M_PI * (pan + 1.0) / 4.0) * std::pow(gain, 2.f);
+                signals_l[c] *= std::cos(M_PI * (pan + 1.0f) / 4.0f) * std::pow(gain, 2.f);
+                signals_r[c] *= std::sin(M_PI * (pan + 1.0f) / 4.0f) * std::pow(gain, 2.f);
             }
 
             if (inputs[LVL_CV_INPUT].isConnected()) {
@@ -352,7 +352,7 @@ struct DaisyDisplay : LedDisplay {
         }
         text = module->label;
 
-        if (text == "") {
+        if (text.empty()) {
             return;
         }
 
@@ -362,7 +362,7 @@ struct DaisyDisplay : LedDisplay {
         nvgFillColor(args.vg, nvgRGB(0xc9, 0x18, 0x47));
         nvgFill(args.vg);
 
-        std::shared_ptr<Font> font = APP->window->loadFont(fontPath);
+        const std::shared_ptr<Font> font = APP->window->loadFont(fontPath);
         if (!font) {
             return;
         }
@@ -374,7 +374,7 @@ struct DaisyDisplay : LedDisplay {
 
         // Foreground text
         nvgFillColor(args.vg, nvgRGB(0xff, 0xff, 0xff));
-        nvgText(args.vg, RACK_GRID_WIDTH - 1, 12, text.c_str(), NULL);
+        nvgText(args.vg, RACK_GRID_WIDTH - 1, 12, text.c_str(), nullptr);
     }
 };
 

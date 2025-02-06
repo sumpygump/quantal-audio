@@ -5,7 +5,6 @@
 constexpr float DAISY_DIVISOR = 16.f;
 
 // How frequently the UI step is processed
-//constexpr int DAISY_UI_DIVISION = 128;
 constexpr int DAISY_UI_DIVISION = 128;
 
 struct DaisyMessage {
