@@ -28,6 +28,8 @@ struct DaisyChannelSends2 : Module {
     float link_l = 0.f;
     float link_r = 0.f;
 
+    int channelStripId = 1;
+
     Vec widgetPos;
 
     dsp::ClockDivider lightDivider;
@@ -145,9 +147,11 @@ struct DaisyChannelSends2 : Module {
             }
 
             firstPos = Vec(msgFromModule->first_pos_x, msgFromModule->first_pos_y);
+            channelStripId = msgFromModule->channel_strip_id;
 
             link_l = 0.8f;
         } else {
+            channelStripId = 1;
             link_l = 0.0f;
         }
 
@@ -181,6 +185,7 @@ struct DaisyChannelSends2 : Module {
 
             msgToModule->first_pos_x = firstPos.x;
             msgToModule->first_pos_y = firstPos.y;
+            msgToModule->channel_strip_id = channelStripId;
 
             link_r = 0.8f;
         } else {

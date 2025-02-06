@@ -34,6 +34,9 @@ struct DaisyChannel2 : Module {
     float aux1_send_amt = 0.f;
     float aux2_send_amt = 0.f;
 
+    int channelStripId = 1;
+    std::string label;
+
     Vec widgetPos;
 
     dsp::ClockDivider lightDivider;
@@ -187,9 +190,11 @@ struct DaisyChannel2 : Module {
             }
 
             firstPos = Vec(msgFromModule->first_pos_x, msgFromModule->first_pos_y);
+            channelStripId = msgFromModule->channel_strip_id;
 
             link_l = 0.8f;
         } else {
+            channelStripId = 1;
             link_l = 0.0f;
         }
 
@@ -238,12 +243,20 @@ struct DaisyChannel2 : Module {
 
             msgToModule->first_pos_x = firstPos.x;
             msgToModule->first_pos_y = firstPos.y;
+            msgToModule->channel_strip_id = channelStripId + 1;
 
             rightExpander.module->leftExpander.messageFlipRequested = true;
 
             link_r = 0.8f;
         } else {
             link_r = 0.0f;
+        }
+
+        if (link_l > 0.0f || link_r > 0.0f) {
+            label = std::to_string(channelStripId);
+        } else {
+            channelStripId = 1;
+            label = "";
         }
 
         // Set lights
@@ -318,6 +331,53 @@ struct DaisyMenuSlider : ui::Slider {
     }
 };
 
+struct DaisyDisplay : LedDisplay {
+    DaisyChannel2* module {};
+    std::string fontPath = asset::plugin(pluginInstance, "res/fonts/EnvyCodeR-Bold.ttf");
+    std::string text;
+
+    NVGcolor color = nvgRGB(0xff, 0xff, 0xff);
+    NVGcolor bgColor = nvgRGB(0xff, 0x00, 0x00);
+
+    void setModule(DaisyChannel2* module) {
+        if (!module) {
+            return;
+        }
+        this->module = module;
+    }
+
+    void draw(const DrawArgs& args) override {
+        if (!module) {
+            return;
+        }
+        text = module->label;
+
+        if (text == "") {
+            return;
+        }
+
+        // Background
+        nvgBeginPath(args.vg);
+        nvgRoundedRect(args.vg, 0, 0, box.size.x, box.size.y, 0);
+        nvgFillColor(args.vg, nvgRGB(0xc9, 0x18, 0x47));
+        nvgFill(args.vg);
+
+        std::shared_ptr<Font> font = APP->window->loadFont(fontPath);
+        if (!font) {
+            return;
+        }
+
+        nvgFontFaceId(args.vg, font->handle);
+        nvgFontSize(args.vg, 14);
+        nvgTextLetterSpacing(args.vg, 0.0);
+        nvgTextAlign(args.vg, NVG_ALIGN_CENTER);
+
+        // Foreground text
+        nvgFillColor(args.vg, nvgRGB(0xff, 0xff, 0xff));
+        nvgText(args.vg, RACK_GRID_WIDTH - 1, 12, text.c_str(), NULL);
+    }
+};
+
 struct DaisyChannelWidget2 : ModuleWidget {
 
     dsp::ClockDivider uiDivider;
@@ -334,6 +394,12 @@ struct DaisyChannelWidget2 : ModuleWidget {
         // Screws
         addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, 0)));
         addChild(createWidget<ThemedScrew>(Vec(0, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+
+        // Label
+        DaisyDisplay* display = createWidget<DaisyDisplay>(Vec(1, 16));
+        display->box.size = Vec(RACK_GRID_WIDTH * 2 - 2, 16);
+        display->setModule(module);
+        addChild(display);
 
         // Channel Input/Output
         addInput(createInput<ThemedPJ301MPort>(Vec(RACK_GRID_WIDTH - 12.5f, 45.0), module, DaisyChannel2::CH_INPUT_1));

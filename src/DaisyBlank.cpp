@@ -22,6 +22,8 @@ struct DaisyBlank : Module {
     float aux1_send_amt = 0.f;
     float aux2_send_amt = 0.f;
 
+    int channelStripId = 1;
+
     Vec widgetPos;
 
     dsp::ClockDivider lightDivider;
@@ -91,9 +93,11 @@ struct DaisyBlank : Module {
             }
 
             firstPos = Vec(msgFromModule->first_pos_x, msgFromModule->first_pos_y);
+            channelStripId = msgFromModule->channel_strip_id;
 
             link_l = 0.8f;
         } else {
+            channelStripId = 1;
             link_l = 0.0f;
         }
 
@@ -127,6 +131,7 @@ struct DaisyBlank : Module {
 
             msgToModule->first_pos_x = firstPos.x;
             msgToModule->first_pos_y = firstPos.y;
+            msgToModule->channel_strip_id = channelStripId;
 
             rightExpander.module->leftExpander.messageFlipRequested = true;
 

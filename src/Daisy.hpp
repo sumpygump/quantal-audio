@@ -5,6 +5,7 @@
 constexpr float DAISY_DIVISOR = 16.f;
 
 // How frequently the UI step is processed
+//constexpr int DAISY_UI_DIVISION = 128;
 constexpr int DAISY_UI_DIVISION = 128;
 
 struct DaisyMessage {
@@ -29,6 +30,7 @@ struct DaisyMessage {
     float aux2_voltages_r[16] = {};
 
     // Meta data about this daisy chain
+    int channel_strip_id = 1;
     float first_pos_x = 0.0f;
     float first_pos_y = 0.0f;
 };

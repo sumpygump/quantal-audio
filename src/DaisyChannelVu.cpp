@@ -32,6 +32,7 @@ struct DaisyChannelVu : Module {
 
     float link_l = 0.f;
     float link_r = 0.f;
+    int channelStripId = 1;
 
     Vec widgetPos;
 
@@ -114,11 +115,13 @@ struct DaisyChannelVu : Module {
             }
 
             firstPos = Vec(msgFromModule->first_pos_x, msgFromModule->first_pos_y);
+            channelStripId = msgFromModule->channel_strip_id;
 
             link_l = 0.8f;
         } else {
             vuMeter[0].process(args.sampleTime, 0.0f);
             vuMeter[1].process(args.sampleTime, 0.0f);
+            channelStripId = 1;
             link_l = 0.0f;
         }
 
@@ -152,6 +155,7 @@ struct DaisyChannelVu : Module {
 
             msgToModule->first_pos_x = firstPos.x;
             msgToModule->first_pos_y = firstPos.y;
+            msgToModule->channel_strip_id = channelStripId;
 
             rightExpander.module->leftExpander.messageFlipRequested = true;
 
