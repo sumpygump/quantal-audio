@@ -167,9 +167,10 @@ struct DaisyChannelVu : Module {
         // Set lights
         if (lightDivider.process()) {
             for (int i = VU_LIGHT_COUNT + 8 + 3; i >= 0; i--) {
-                const float position = 1.5f * static_cast<float>(i);
-                lights[VU_LIGHTS_L + i].setBrightness(vuMeter[0].getBrightness(-60.f + position + 1, -60 + position));
-                lights[VU_LIGHTS_R + i].setBrightness(vuMeter[1].getBrightness(-60.f + position + 1, -60 + position));
+                const float dbMax = -60.f + 1.5f * static_cast<float>(i);
+                const float dbMin = dbMax + 1;
+                lights[VU_LIGHTS_L + i].setBrightness(vuMeter[0].getBrightness(dbMin, dbMax));
+                lights[VU_LIGHTS_R + i].setBrightness(vuMeter[1].getBrightness(dbMin, dbMax));
             }
             lights[LINK_LIGHT_L].setBrightness(link_l);
             lights[LINK_LIGHT_R].setBrightness(link_r);
