@@ -304,6 +304,18 @@ struct DaisyMasterWidget2 : ModuleWidget {
             module->addChannelStrips(this, 4, 2, true);
         }));
     }
+
+    void onHoverKey(const HoverKeyEvent& e) override {
+        if (e.action == GLFW_RELEASE) {
+            if (e.keyName[0] == 'm') {
+                DaisyMaster2 *module = getModule<DaisyMaster2>();
+                // Toggle mute
+                module->params[DaisyMaster2::MUTE_PARAM].setValue(module->muted ? 0.f : 1.f);
+                e.consume(this);
+            }
+        }
+        ModuleWidget::onHoverKey(e);
+    }
 };
 
 Model* modelDaisyMaster2 = createModel<DaisyMaster2, DaisyMasterWidget2>("DaisyMaster2");

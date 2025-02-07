@@ -379,6 +379,18 @@ struct DaisyChannelWidget2 : ModuleWidget {
         menu->addChild(new DaisyMenuSlider<SendQuantity, 1>(module)); // Aux send group 1
         menu->addChild(new DaisyMenuSlider<SendQuantity, 2>(module)); // Aux send group 2
     }
+
+    void onHoverKey(const HoverKeyEvent& e) override {
+        if (e.action == GLFW_RELEASE) {
+            if (e.keyName[0] == 'm') {
+                DaisyChannel2 *module = getModule<DaisyChannel2>();
+                // Toggle mute
+                module->params[DaisyChannel2::MUTE_PARAM].setValue(module->muted ? 0.f : 1.f);
+                e.consume(this);
+            }
+        }
+        ModuleWidget::onHoverKey(e);
+    }
 };
 
 Model* modelDaisyChannel2 = createModel<DaisyChannel2, DaisyChannelWidget2>("DaisyChannel2");
