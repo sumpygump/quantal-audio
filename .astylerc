@@ -30,7 +30,7 @@ min-conditional-indent=0
 pad-comma
 pad-header
 pad-include
-#pad-oper # Bug with this for nested templates https://gitlab.com/saalen/astyle/-/issues/69
+pad-oper # Bug with this for nested templates https://gitlab.com/saalen/astyle/-/issues/69
 squeeze-lines=1
 squeeze-ws
 unpad-paren

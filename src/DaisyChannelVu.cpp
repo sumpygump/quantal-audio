@@ -195,16 +195,19 @@ struct DaisyChannelVuWidget : ModuleWidget {
         addChild(createLightCentered<TinyLight<YellowLight>>(Vec(RACK_GRID_WIDTH / 2 + 3, 361.0f), module, DaisyChannelVu::LINK_LIGHT_R));
 
         for (int i = 0; i < VU_LIGHT_COUNT; i++) {
-            addChild(createLightCentered<VCVSliderLight<GreenLight>>(Vec(RACK_GRID_WIDTH / 2 - 3.f, 339.f - static_cast<float>(i) * 7), module, DaisyChannelVu::VU_LIGHTS_L + i));
-            addChild(createLightCentered<VCVSliderLight<GreenLight>>(Vec(RACK_GRID_WIDTH / 2 + 3.f, 339.f - static_cast<float>(i) * 7), module, DaisyChannelVu::VU_LIGHTS_R + i));
+            float distance = static_cast<float>(i) * 7;
+            addChild(createLightCentered<VCVSliderLight<GreenLight>>(Vec(RACK_GRID_WIDTH / 2 - 3.f, 339.f - distance), module, DaisyChannelVu::VU_LIGHTS_L + i));
+            addChild(createLightCentered<VCVSliderLight<GreenLight>>(Vec(RACK_GRID_WIDTH / 2 + 3.f, 339.f - distance), module, DaisyChannelVu::VU_LIGHTS_R + i));
         }
         for (int i = VU_LIGHT_COUNT; i < VU_LIGHT_COUNT + 8; i++) {
-            addChild(createLightCentered<VCVSliderLight<YellowLight>>(Vec(RACK_GRID_WIDTH / 2 - 3.f, 339.f - static_cast<float>(i) * 7), module, DaisyChannelVu::VU_LIGHTS_L + i));
-            addChild(createLightCentered<VCVSliderLight<YellowLight>>(Vec(RACK_GRID_WIDTH / 2 + 3.f, 339.f - static_cast<float>(i) * 7), module, DaisyChannelVu::VU_LIGHTS_R + i));
+            float distance = static_cast<float>(i) * 7;
+            addChild(createLightCentered<VCVSliderLight<YellowLight>>(Vec(RACK_GRID_WIDTH / 2 - 3.f, 339.f - distance), module, DaisyChannelVu::VU_LIGHTS_L + i));
+            addChild(createLightCentered<VCVSliderLight<YellowLight>>(Vec(RACK_GRID_WIDTH / 2 + 3.f, 339.f - distance), module, DaisyChannelVu::VU_LIGHTS_R + i));
         }
         for (int i = VU_LIGHT_COUNT + 8; i < VU_LIGHT_COUNT + 12; i++) {
-            addChild(createLightCentered<VCVSliderLight<RedLight>>(Vec(RACK_GRID_WIDTH / 2 - 3.f, 339.f - static_cast<float>(i) * 7), module, DaisyChannelVu::VU_LIGHTS_L + i));
-            addChild(createLightCentered<VCVSliderLight<RedLight>>(Vec(RACK_GRID_WIDTH / 2 + 3.f, 339.f - static_cast<float>(i) * 7), module, DaisyChannelVu::VU_LIGHTS_R + i));
+            float distance = static_cast<float>(i) * 7;
+            addChild(createLightCentered<VCVSliderLight<RedLight>>(Vec(RACK_GRID_WIDTH / 2 - 3.f, 339.f - distance), module, DaisyChannelVu::VU_LIGHTS_L + i));
+            addChild(createLightCentered<VCVSliderLight<RedLight>>(Vec(RACK_GRID_WIDTH / 2 + 3.f, 339.f - distance), module, DaisyChannelVu::VU_LIGHTS_R + i));
         }
 
         uiDivider.setDivision(DAISY_UI_DIVISION);
