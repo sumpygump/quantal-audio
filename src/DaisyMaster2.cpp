@@ -37,6 +37,8 @@ struct DaisyMaster2 : Module {
     Vec widgetPos;
 
     DaisyMessage daisyMessages[2][1];
+    StereoVoltages signals = {};
+    StereoVoltages soloSignals = {};
 
     DaisyMaster2() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
@@ -82,10 +84,6 @@ struct DaisyMaster2 : Module {
     void process(const ProcessArgs &args) override {
         muted = params[MUTE_PARAM].getValue() > 0.f;
 
-        int channels = 1;
-        float mix_l[16] = {};
-        float mix_r[16] = {};
-
         widgetPos = Vec(0, 0);
 
         if (!muted) {
@@ -98,11 +96,8 @@ struct DaisyMaster2 : Module {
                 )) {
                 DaisyMessage* msgFromExpander = static_cast<DaisyMessage*>(leftExpander.consumerMessage);
 
-                channels = msgFromExpander->channels;
-                for (int c = 0; c < channels; c++) {
-                    mix_l[c] = msgFromExpander->voltages_l[c];
-                    mix_r[c] = msgFromExpander->voltages_r[c];
-                }
+                signals = msgFromExpander->signals;
+                soloSignals = msgFromExpander->soloSignals;
 
                 widgetPos = Vec(msgFromExpander->first_pos_x, msgFromExpander->first_pos_y);
 
@@ -113,36 +108,51 @@ struct DaisyMaster2 : Module {
 
             float gain = params[MIX_LVL_PARAM].getValue();
 
-            // Bring the voltage back up from the chained low voltage
-            for (int c = 0; c < channels; c++) {
-                mix_l[c] = clamp(mix_l[c] * DAISY_DIVISOR, -12.f, 12.f) * gain;
-                mix_r[c] = clamp(mix_r[c] * DAISY_DIVISOR, -12.f, 12.f) * gain;
-            }
-
-            if (inputs[MIX_CV_INPUT].isConnected()) {
-                for (int c = 0; c < channels; c++) {
-                    const float mix_cv = clamp(inputs[MIX_CV_INPUT].getPolyVoltage(c) / 10.f, 0.f, 1.f);
-                    mix_l[c] *= mix_cv;
-                    mix_r[c] *= mix_cv;
+            if (soloSignals.channels > 0) {
+                for (int c = 0; c < soloSignals.channels; c++) {
+                    soloSignals.voltages_l[c] = clamp(soloSignals.voltages_l[c], -12.f, 12.f) * gain;
+                    soloSignals.voltages_r[c] = clamp(soloSignals.voltages_r[c], -12.f, 12.f) * gain;
                 }
+
+                if (inputs[MIX_CV_INPUT].isConnected()) {
+                    for (int c = 0; c < soloSignals.channels; c++) {
+                        const float mix_cv = clamp(inputs[MIX_CV_INPUT].getPolyVoltage(c) / 10.f, 0.f, 1.f);
+                        soloSignals.voltages_l[c] *= mix_cv;
+                        soloSignals.voltages_r[c] *= mix_cv;
+                    }
+                }
+
+                outputs[MIX_OUTPUT_1].setChannels(soloSignals.channels);
+                outputs[MIX_OUTPUT_1].writeVoltages(soloSignals.voltages_l);
+                outputs[MIX_OUTPUT_2].setChannels(soloSignals.channels);
+                outputs[MIX_OUTPUT_2].writeVoltages(soloSignals.voltages_r);
+            } else {
+                // Bring the voltage back up from the chained low voltage
+                for (int c = 0; c < signals.channels; c++) {
+                    signals.voltages_l[c] = clamp(signals.voltages_l[c] * DAISY_DIVISOR, -12.f, 12.f) * gain;
+                    signals.voltages_r[c] = clamp(signals.voltages_r[c] * DAISY_DIVISOR, -12.f, 12.f) * gain;
+                }
+
+                if (inputs[MIX_CV_INPUT].isConnected()) {
+                    for (int c = 0; c < signals.channels; c++) {
+                        const float mix_cv = clamp(inputs[MIX_CV_INPUT].getPolyVoltage(c) / 10.f, 0.f, 1.f);
+                        signals.voltages_l[c] *= mix_cv;
+                        signals.voltages_r[c] *= mix_cv;
+                    }
+                }
+                outputs[MIX_OUTPUT_1].setChannels(signals.channels);
+                outputs[MIX_OUTPUT_1].writeVoltages(signals.voltages_l);
+                outputs[MIX_OUTPUT_2].setChannels(signals.channels);
+                outputs[MIX_OUTPUT_2].writeVoltages(signals.voltages_r);
             }
 
             // Set output to right-side linked VU meter module
             if (rightExpander.module && rightExpander.module->model == modelDaisyChannelVu) {
                 DaisyMessage* msgToModule = static_cast<DaisyMessage*>(rightExpander.module->leftExpander.producerMessage);
-                msgToModule->single_channels = channels;
-                for (int c = 0; c < channels; c++) {
-                    msgToModule->single_voltages_l[c] = mix_l[c];
-                    msgToModule->single_voltages_r[c] = mix_r[c];
-                }
+                msgToModule->singleSignals = signals;
                 rightExpander.module->leftExpander.messageFlipRequested = true;
             }
         }
-
-        outputs[MIX_OUTPUT_1].setChannels(channels);
-        outputs[MIX_OUTPUT_1].writeVoltages(mix_l);
-        outputs[MIX_OUTPUT_2].setChannels(channels);
-        outputs[MIX_OUTPUT_2].writeVoltages(mix_r);
 
         // Set lights
         if (lightDivider.process()) {

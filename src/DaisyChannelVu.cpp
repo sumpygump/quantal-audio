@@ -54,7 +54,7 @@ struct DaisyChannelVu : Module {
         rightExpander.producerMessage = &daisyOutputMessage[0];
         rightExpander.consumerMessage = &daisyOutputMessage[1];
 
-        lightDivider.setDivision(512);
+        lightDivider.setDivision(DAISY_LIGHT_DIVISION);
     }
 
     void setWidgetPosition(Vec pos) {
@@ -62,18 +62,6 @@ struct DaisyChannelVu : Module {
     }
 
     void process(const ProcessArgs &args) override {
-
-        int chainChannels = 1;
-        float signals_l[16] = {};
-        float signals_r[16] = {};
-        float daisySignals_l[16] = {};
-        float daisySignals_r[16] = {};
-        int aux1Channels = 1;
-        float aux1Signals_l[16] = {};
-        float aux1Signals_r[16] = {};
-        int aux2Channels = 1;
-        float aux2Signals_l[16] = {};
-        float aux2Signals_r[16] = {};
 
         // Assume this module is the first in the chain; it will get
         // overwritten if we receive a value from the left expander
@@ -87,35 +75,42 @@ struct DaisyChannelVu : Module {
                 || leftExpander.module->model == modelDaisyMaster2
                 || leftExpander.module->model == modelDaisyBlank
             )) {
-            DaisyMessage* msgFromModule = static_cast<DaisyMessage*>(leftExpander.consumerMessage);
-            chainChannels = msgFromModule->channels;
-            for (int c = 0; c < chainChannels; c++) {
-                daisySignals_l[c] = msgFromModule->voltages_l[c];
-                daisySignals_r[c] = msgFromModule->voltages_r[c];
-            }
+            const DaisyMessage* msgFromModule = static_cast<DaisyMessage*>(leftExpander.consumerMessage);
 
-            // Get the immediate signal from single channel strip
-            for (int c = 0; c < msgFromModule->single_channels; c++) {
-                signals_l[c] = msgFromModule->single_voltages_l[c];
-                signals_r[c] = msgFromModule->single_voltages_r[c];
-            }
-            vuMeter[0].process(args.sampleTime, getVoltageSum(chainChannels, signals_l) / 10.f);
-            vuMeter[1].process(args.sampleTime, getVoltageSum(chainChannels, signals_r) / 10.f);
-
-            // Get the aux signal to pass it through
-            aux1Channels = msgFromModule->aux1_channels;
-            for (int c = 0; c < aux1Channels; c++) {
-                aux1Signals_l[c] = msgFromModule->aux1_voltages_l[c];
-                aux1Signals_r[c] = msgFromModule->aux1_voltages_r[c];
-            }
-            aux2Channels = msgFromModule->aux2_channels;
-            for (int c = 0; c < aux2Channels; c++) {
-                aux2Signals_l[c] = msgFromModule->aux2_voltages_l[c];
-                aux2Signals_r[c] = msgFromModule->aux2_voltages_r[c];
-            }
+            // Use the single channel to display in VU meter
+            vuMeter[0].process(
+                args.sampleTime,
+                getVoltageSum(msgFromModule->singleSignals.channels, msgFromModule->singleSignals.voltages_l) / 10.f
+            );
+            vuMeter[1].process(
+                args.sampleTime,
+                getVoltageSum(msgFromModule->singleSignals.channels, msgFromModule->singleSignals.voltages_r) / 10.f
+            );
 
             firstPos = Vec(msgFromModule->first_pos_x, msgFromModule->first_pos_y);
             channelStripId = msgFromModule->channel_strip_id;
+
+            // Set daisy-chained output to right-side linked module
+            if (rightExpander.module && (
+                    rightExpander.module->model == modelDaisyMaster2
+                    || rightExpander.module->model == modelDaisyChannel2
+                    || rightExpander.module->model == modelDaisyChannelVu
+                    || rightExpander.module->model == modelDaisyChannelSends2
+                    || rightExpander.module->model == modelDaisyBlank
+                )) {
+                DaisyMessage* msgToModule = static_cast<DaisyMessage*>(rightExpander.module->leftExpander.producerMessage);
+
+                msgToModule->signals = msgFromModule->signals;
+                msgToModule->aux1Signals = msgFromModule->aux1Signals;
+                msgToModule->aux2Signals = msgFromModule->aux2Signals;
+                msgToModule->soloSignals = msgFromModule->soloSignals;
+
+                msgToModule->first_pos_x = firstPos.x;
+                msgToModule->first_pos_y = firstPos.y;
+                msgToModule->channel_strip_id = channelStripId;
+
+                rightExpander.module->leftExpander.messageFlipRequested = true;
+            }
 
             link_l = 0.8f;
         } else {
@@ -125,7 +120,7 @@ struct DaisyChannelVu : Module {
             link_l = 0.0f;
         }
 
-        // Set daisy-chained output to right-side linked module
+        // Make sure link light to the right is correct
         if (rightExpander.module && (
                 rightExpander.module->model == modelDaisyMaster2
                 || rightExpander.module->model == modelDaisyChannel2
@@ -133,32 +128,6 @@ struct DaisyChannelVu : Module {
                 || rightExpander.module->model == modelDaisyChannelSends2
                 || rightExpander.module->model == modelDaisyBlank
             )) {
-            DaisyMessage* msgToModule = static_cast<DaisyMessage*>(rightExpander.module->leftExpander.producerMessage);
-
-            msgToModule->channels = chainChannels;
-            for (int c = 0; c < chainChannels; c++) {
-                msgToModule->voltages_l[c] = daisySignals_l[c];
-                msgToModule->voltages_r[c] = daisySignals_r[c];
-            }
-
-            // Send along aux signals
-            msgToModule->aux1_channels = aux1Channels;
-            for (int c = 0; c < aux1Channels; c++) {
-                msgToModule->aux1_voltages_l[c] = aux1Signals_l[c];
-                msgToModule->aux1_voltages_r[c] = aux1Signals_r[c];
-            }
-            msgToModule->aux2_channels = aux2Channels;
-            for (int c = 0; c < aux2Channels; c++) {
-                msgToModule->aux2_voltages_l[c] = aux2Signals_l[c];
-                msgToModule->aux2_voltages_r[c] = aux2Signals_r[c];
-            }
-
-            msgToModule->first_pos_x = firstPos.x;
-            msgToModule->first_pos_y = firstPos.y;
-            msgToModule->channel_strip_id = channelStripId;
-
-            rightExpander.module->leftExpander.messageFlipRequested = true;
-
             link_r = 0.8f;
         } else {
             link_r = 0.0f;

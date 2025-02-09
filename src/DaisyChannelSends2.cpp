@@ -38,6 +38,12 @@ struct DaisyChannelSends2 : Module {
     DaisyMessage daisyInputMessage[2][1];
     DaisyMessage daisyOutputMessage[2][1];
 
+    StereoVoltages daisySignals = {};
+    StereoVoltages auxSignals = {};
+    StereoVoltages aux1Signals = {};
+    StereoVoltages aux2Signals = {};
+    StereoVoltages soloSignals = {};
+
     DaisyChannelSends2() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
 
@@ -55,7 +61,7 @@ struct DaisyChannelSends2 : Module {
         rightExpander.producerMessage = &daisyOutputMessage[0];
         rightExpander.consumerMessage = &daisyOutputMessage[1];
 
-        lightDivider.setDivision(512);
+        lightDivider.setDivision(DAISY_LIGHT_DIVISION);
     }
 
     json_t* dataToJson() override {
@@ -80,18 +86,11 @@ struct DaisyChannelSends2 : Module {
     }
 
     void process(const ProcessArgs &args) override {
-        int chainChannels = 1;
-        float mix_l[16] = {};
-        float mix_r[16] = {};
-        int auxChannels = 1;
-        float aux_l[16] = {};
-        float aux_r[16] = {};
-        int aux1Channels = 1;
-        float aux1Signals_l[16] = {};
-        float aux1Signals_r[16] = {};
-        int aux2Channels = 1;
-        float aux2Signals_l[16] = {};
-        float aux2Signals_r[16] = {};
+        daisySignals = {};
+        auxSignals = {};
+        aux1Signals = {};
+        aux2Signals = {};
+        soloSignals = {};
 
         // Assume this module is the first in the chain; it will get
         // overwritten if we receive a value from the left expander
@@ -114,37 +113,17 @@ struct DaisyChannelSends2 : Module {
             )) {
             DaisyMessage* msgFromModule = static_cast<DaisyMessage*>(leftExpander.consumerMessage);
 
-            chainChannels = msgFromModule->channels;
-            for (int c = 0; c < chainChannels; c++) {
-                mix_l[c] = msgFromModule->voltages_l[c];
-                mix_r[c] = msgFromModule->voltages_r[c];
-            }
-
-            aux1Channels = msgFromModule->aux1_channels;
-            for (int c = 0; c < aux1Channels; c++) {
-                aux1Signals_l[c] = msgFromModule->aux1_voltages_l[c];
-                aux1Signals_r[c] = msgFromModule->aux1_voltages_r[c];
-            }
-
-            aux2Channels = msgFromModule->aux2_channels;
-            for (int c = 0; c < aux2Channels; c++) {
-                aux2Signals_l[c] = msgFromModule->aux2_voltages_l[c];
-                aux2Signals_r[c] = msgFromModule->aux2_voltages_r[c];
-            }
+            daisySignals = msgFromModule->signals;
+            aux1Signals = msgFromModule->aux1Signals;
+            aux2Signals = msgFromModule->aux2Signals;
 
             if (group == 1) {
-                auxChannels = aux1Channels;
-                for (int c = 0; c < auxChannels; c++) {
-                    aux_l[c] = aux1Signals_l[c];
-                    aux_r[c] = aux1Signals_r[c];
-                }
+                auxSignals = aux1Signals;
             } else {
-                auxChannels = aux2Channels;
-                for (int c = 0; c < auxChannels; c++) {
-                    aux_l[c] = aux2Signals_l[c];
-                    aux_r[c] = aux2Signals_r[c];
-                }
+                auxSignals = aux2Signals;
             }
+
+            soloSignals = msgFromModule->soloSignals;
 
             firstPos = Vec(msgFromModule->first_pos_x, msgFromModule->first_pos_y);
             channelStripId = msgFromModule->channel_strip_id;
@@ -165,23 +144,10 @@ struct DaisyChannelSends2 : Module {
             )) {
             DaisyMessage* msgToModule = static_cast<DaisyMessage*>(rightExpander.module->leftExpander.producerMessage);
 
-            msgToModule->channels = chainChannels;
-            for (int c = 0; c < chainChannels; c++) {
-                msgToModule->voltages_l[c] = mix_l[c];
-                msgToModule->voltages_r[c] = mix_r[c];
-            }
-
-            // Combine/pass through the aux send voltages
-            msgToModule->aux1_channels = aux1Channels;
-            for (int c = 0; c < aux1Channels; c++) {
-                msgToModule->aux1_voltages_l[c] = aux1Signals_l[c];
-                msgToModule->aux1_voltages_r[c] = aux1Signals_r[c];
-            }
-            msgToModule->aux2_channels = aux2Channels;
-            for (int c = 0; c < aux2Channels; c++) {
-                msgToModule->aux2_voltages_l[c] = aux2Signals_l[c];
-                msgToModule->aux2_voltages_r[c] = aux2Signals_r[c];
-            }
+            msgToModule->signals = daisySignals;
+            msgToModule->aux1Signals = aux1Signals;
+            msgToModule->aux2Signals = aux2Signals;
+            msgToModule->soloSignals = soloSignals;
 
             msgToModule->first_pos_x = firstPos.x;
             msgToModule->first_pos_y = firstPos.y;
@@ -192,21 +158,11 @@ struct DaisyChannelSends2 : Module {
             link_r = 0.0f;
         }
 
-        // Bring the voltage back up from the chained low voltage
-        for (int c = 0; c < chainChannels; c++) {
-            mix_l[c] = clamp(mix_l[c] * DAISY_DIVISOR, -12.f, 12.f) * 1;
-            mix_r[c] = clamp(mix_r[c] * DAISY_DIVISOR, -12.f, 12.f) * 1;
-        }
-
         // Set this channel's output to right-side linked VU module
         if (rightExpander.module && rightExpander.module->model == modelDaisyChannelVu) {
             // Write this module's output to the single channel message
             DaisyMessage* msgToModule = static_cast<DaisyMessage*>(rightExpander.module->leftExpander.producerMessage);
-            msgToModule->single_channels = chainChannels;
-            for (int c = 0; c < chainChannels; c++) {
-                msgToModule->single_voltages_l[c] = aux_l[c];
-                msgToModule->single_voltages_r[c] = aux_r[c];
-            }
+            msgToModule->singleSignals = auxSignals;
         }
 
         if (rightExpander.module && link_r > 0.0f) {
@@ -214,10 +170,10 @@ struct DaisyChannelSends2 : Module {
         }
 
         // Set aggregated decoded output
-        outputs[CH_OUTPUT_1].setChannels(auxChannels);
-        outputs[CH_OUTPUT_1].writeVoltages(aux_l);
-        outputs[CH_OUTPUT_2].setChannels(auxChannels);
-        outputs[CH_OUTPUT_2].writeVoltages(aux_r);
+        outputs[CH_OUTPUT_1].setChannels(auxSignals.channels);
+        outputs[CH_OUTPUT_1].writeVoltages(auxSignals.voltages_l);
+        outputs[CH_OUTPUT_2].setChannels(auxSignals.channels);
+        outputs[CH_OUTPUT_2].writeVoltages(auxSignals.voltages_r);
 
         // Set lights
         if (lightDivider.process()) {

@@ -1,6 +1,12 @@
 #include "QuantalAudio.hpp"
 #include "Daisy.hpp"
 
+constexpr float VALUE_MUTE = 1.f;
+constexpr float VALUE_SOLO = -1.f;
+constexpr float VALUE_OFF = 0.f;
+
+constexpr int HOLD_TRIGGER_DURATION = 50;
+
 struct DaisyChannel2 : Module {
     enum ParamIds {
         CH_LVL_PARAM,
@@ -21,6 +27,7 @@ struct DaisyChannel2 : Module {
     };
     enum LightsIds {
         MUTE_LIGHT,
+        MUTE2_LIGHT,
         LINK_LIGHT_L,
         LINK_LIGHT_R,
         AUX1_LIGHT,
@@ -29,6 +36,7 @@ struct DaisyChannel2 : Module {
     };
 
     bool muted = false;
+    bool solo = false;
     float link_l = 0.f;
     float link_r = 0.f;
     float aux1_send_amt = 0.f;
@@ -44,11 +52,14 @@ struct DaisyChannel2 : Module {
     DaisyMessage daisyInputMessage[2][1];
     DaisyMessage daisyOutputMessage[2][1];
 
+    /**
+     * Constructor
+     */
     DaisyChannel2() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
         configParam(CH_LVL_PARAM, 0.0f, 1.0f, 1.0f, "Channel level", " dB", -10, 20);
         configParam(PAN_PARAM, -1.0f, 1.0f, 0.0f, "Panning", "%", 0.f, 100.f);
-        configSwitch(MUTE_PARAM, 0.f, 1.f, 0.f, "Mute", {"Not muted", "Muted"});
+        configSwitch(MUTE_PARAM, VALUE_SOLO, VALUE_MUTE, VALUE_OFF, "Mute", {"Solo", "Not muted", "Muted"});
 
         configInput(CH_INPUT_1, "Channel L");
         configInput(CH_INPUT_2, "Channel R");
@@ -66,25 +77,38 @@ struct DaisyChannel2 : Module {
         rightExpander.producerMessage = &daisyOutputMessage[0];
         rightExpander.consumerMessage = &daisyOutputMessage[1];
 
-        lightDivider.setDivision(512);
+        lightDivider.setDivision(DAISY_LIGHT_DIVISION);
     }
 
+    /**
+     * Persist state settings for this module
+     */
     json_t* dataToJson() override {
         json_t* rootJ = json_object();
 
         // mute
         json_object_set_new(rootJ, "muted", json_boolean(muted));
+        json_object_set_new(rootJ, "solo", json_boolean(solo));
         json_object_set_new(rootJ, "aux1_send_amt", json_real(aux1_send_amt));
         json_object_set_new(rootJ, "aux2_send_amt", json_real(aux2_send_amt));
 
         return rootJ;
     }
 
+    /**
+     * Load persisted state data for this module
+     */
     void dataFromJson(json_t* rootJ) override {
         // mute
         const json_t* mutedJ = json_object_get(rootJ, "muted");
         if (mutedJ) {
             muted = json_is_true(mutedJ);
+        }
+
+        // solo
+        const json_t* soloJ = json_object_get(rootJ, "solo");
+        if (soloJ) {
+            solo = json_is_true(soloJ);
         }
 
         // aux 1
@@ -100,28 +124,44 @@ struct DaisyChannel2 : Module {
         }
     }
 
+    /**
+     * Tell the module where the widget is located on the rack , so we can pass
+     * it along the chain to the daisy master
+     */
     void setWidgetPosition(const Vec pos) {
         widgetPos = pos;
     }
 
+    /**
+     * When user resets this module
+     */
     void onReset() override {
+        muted = false;
+        solo = false;
         aux1_send_amt = 0.0f;
         aux2_send_amt = 0.0f;
     }
 
-    void process(const ProcessArgs &args) override {
-        muted = params[MUTE_PARAM].getValue() > 0.f;
+    StereoVoltages signals = {};
+    StereoVoltages daisySignals = {};
+    StereoVoltages aux1Signals = {};
+    StereoVoltages aux2Signals = {};
+    StereoVoltages soloSignals = {};
 
-        int channels = 1;
-        int chainChannels = 1;
-        float signals_l[16] = {};
-        float signals_r[16] = {};
-        float daisySignals_l[16] = {};
-        float daisySignals_r[16] = {};
-        float aux1Signals_l[16] = {};
-        float aux1Signals_r[16] = {};
-        float aux2Signals_l[16] = {};
-        float aux2Signals_r[16] = {};
+    /**
+     * PROCESS
+     *
+     * Called at sample rate
+     */
+    void process(const ProcessArgs &args) override {
+        muted = params[MUTE_PARAM].getValue() > VALUE_OFF;
+        solo = params[MUTE_PARAM].getValue() < VALUE_OFF;
+
+        signals = {};
+        daisySignals = {};
+        aux1Signals = {};
+        aux2Signals = {};
+        soloSignals = {};
 
         // Assume this module is the first in the chain; it will get
         // overwritten if we receive a value from the left expander
@@ -132,36 +172,36 @@ struct DaisyChannel2 : Module {
             const float gain = params[CH_LVL_PARAM].getValue();
             const float pan = params[PAN_PARAM].getValue();
 
-            channels = std::max(inputs[CH_INPUT_1].getChannels(), inputs[CH_INPUT_2].getChannels());
+            signals.channels = std::max(inputs[CH_INPUT_1].getChannels(), inputs[CH_INPUT_2].getChannels());
 
-            inputs[CH_INPUT_1].readVoltages(signals_l);
+            inputs[CH_INPUT_1].readVoltages(signals.voltages_l);
             if (inputs[CH_INPUT_2].isConnected()) {
-                inputs[CH_INPUT_2].readVoltages(signals_r);
+                inputs[CH_INPUT_2].readVoltages(signals.voltages_r);
             } else {
                 // Copy signals from ch1 into ch2
-                inputs[CH_INPUT_1].readVoltages(signals_r);
+                inputs[CH_INPUT_1].readVoltages(signals.voltages_r);
             }
 
-            for (int c = 0; c < channels; c++) {
-                signals_l[c] *= std::cos(M_PI * (pan + 1.0f) / 4.0f) * std::pow(gain, 2.f);
-                signals_r[c] *= std::sin(M_PI * (pan + 1.0f) / 4.0f) * std::pow(gain, 2.f);
+            for (int c = 0; c < signals.channels; c++) {
+                signals.voltages_l[c] *= std::cos(M_PI * (pan + 1.0f) / 4.0f) * std::pow(gain, 2.f);
+                signals.voltages_r[c] *= std::sin(M_PI * (pan + 1.0f) / 4.0f) * std::pow(gain, 2.f);
             }
 
             if (inputs[LVL_CV_INPUT].isConnected()) {
-                for (int c = 0; c < channels; c++) {
+                for (int c = 0; c < signals.channels; c++) {
                     const float _cv = clamp(inputs[LVL_CV_INPUT].getPolyVoltage(c) / 10.f, 0.f, 1.f);
-                    signals_l[c] *= _cv;
-                    signals_r[c] *= _cv;
+                    signals.voltages_l[c] *= _cv;
+                    signals.voltages_r[c] *= _cv;
                 }
             }
         }
 
         // Set output for this channel strip
-        outputs[CH_OUTPUT_1].setChannels(channels);
-        outputs[CH_OUTPUT_1].writeVoltages(signals_l);
+        outputs[CH_OUTPUT_1].setChannels(signals.channels);
+        outputs[CH_OUTPUT_1].writeVoltages(signals.voltages_l);
 
-        outputs[CH_OUTPUT_2].setChannels(channels);
-        outputs[CH_OUTPUT_2].writeVoltages(signals_r);
+        outputs[CH_OUTPUT_2].setChannels(signals.channels);
+        outputs[CH_OUTPUT_2].writeVoltages(signals.voltages_r);
 
         // Get daisy-chained data from left-side linked module
         if (leftExpander.module && (
@@ -171,23 +211,11 @@ struct DaisyChannel2 : Module {
                 || leftExpander.module->model == modelDaisyBlank
             )) {
             const DaisyMessage* msgFromModule = static_cast<DaisyMessage*>(leftExpander.consumerMessage);
-            chainChannels = msgFromModule->channels;
-            for (int c = 0; c < chainChannels; c++) {
-                daisySignals_l[c] = msgFromModule->voltages_l[c];
-                daisySignals_r[c] = msgFromModule->voltages_r[c];
-            }
 
-            const int aux1Channels = msgFromModule->aux1_channels;
-            for (int c = 0; c < aux1Channels; c++) {
-                aux1Signals_l[c] = msgFromModule->aux1_voltages_l[c];
-                aux1Signals_r[c] = msgFromModule->aux1_voltages_r[c];
-            }
-
-            const int aux2Channels = msgFromModule->aux2_channels;
-            for (int c = 0; c < aux2Channels; c++) {
-                aux2Signals_l[c] = msgFromModule->aux2_voltages_l[c];
-                aux2Signals_r[c] = msgFromModule->aux2_voltages_r[c];
-            }
+            daisySignals = msgFromModule->signals;
+            aux1Signals = msgFromModule->aux1Signals;
+            aux2Signals = msgFromModule->aux2Signals;
+            soloSignals = msgFromModule->soloSignals;
 
             firstPos = Vec(msgFromModule->first_pos_x, msgFromModule->first_pos_y);
             channelStripId = msgFromModule->channel_strip_id;
@@ -198,7 +226,8 @@ struct DaisyChannel2 : Module {
             link_l = 0.0f;
         }
 
-        const int maxChannels = std::max(chainChannels, channels);
+        const int maxChannels = std::max(daisySignals.channels, signals.channels);
+        daisySignals.channels = maxChannels;
 
         // Set daisy-chained output to right-side linked module
         if (rightExpander.module && (
@@ -211,34 +240,39 @@ struct DaisyChannel2 : Module {
             DaisyMessage* msgToModule = static_cast<DaisyMessage*>(rightExpander.module->leftExpander.producerMessage);
 
             // Write this module's output along to single voltages pipe
-            msgToModule->single_channels = channels;
-            for (int c = 0; c < channels; c++) {
-                msgToModule->single_voltages_l[c] = signals_l[c];
-                msgToModule->single_voltages_r[c] = signals_r[c];
-            }
+            msgToModule->singleSignals = signals;
 
-            // Combine this module's signal with daisy-chain
+            msgToModule->aux1Signals.channels = maxChannels;
+            msgToModule->aux2Signals.channels = maxChannels;
+
             for (int c = 0; c < maxChannels; c++) {
-                daisySignals_l[c] += signals_l[c] / DAISY_DIVISOR;
-                daisySignals_r[c] += signals_r[c] / DAISY_DIVISOR;
-            }
+                // Combine this module's signal with daisy-chain
+                daisySignals.voltages_l[c] += signals.voltages_l[c] / DAISY_DIVISOR;
+                daisySignals.voltages_r[c] += signals.voltages_r[c] / DAISY_DIVISOR;
 
-            // Combine/pass through the aux send voltages
-            msgToModule->aux1_channels = maxChannels;
-            msgToModule->aux2_channels = maxChannels;
-            for (int c = 0; c < maxChannels; c++) {
-                msgToModule->aux1_voltages_l[c] = aux1Signals_l[c] + (aux1_send_amt * signals_l[c]);
-                msgToModule->aux1_voltages_r[c] = aux1Signals_r[c] + (aux1_send_amt * signals_r[c]);
+                msgToModule->aux1Signals.voltages_l[c] = aux1Signals.voltages_l[c]
+                    + (aux1_send_amt * signals.voltages_l[c]);
+                msgToModule->aux1Signals.voltages_r[c] = aux1Signals.voltages_r[c]
+                    + (aux1_send_amt * signals.voltages_r[c]);
 
-                msgToModule->aux2_voltages_l[c] = aux2Signals_l[c] + (aux2_send_amt * signals_l[c]);
-                msgToModule->aux2_voltages_r[c] = aux2Signals_r[c] + (aux2_send_amt * signals_r[c]);
+                msgToModule->aux2Signals.voltages_l[c] = aux2Signals.voltages_l[c]
+                    + (aux2_send_amt * signals.voltages_l[c]);
+                msgToModule->aux2Signals.voltages_r[c] = aux2Signals.voltages_r[c]
+                    + (aux2_send_amt * signals.voltages_r[c]);
             }
 
             // Write daisy-chain signal to producer message
-            msgToModule->channels = maxChannels;
-            for (int c = 0; c < maxChannels; c++) {
-                msgToModule->voltages_l[c] = daisySignals_l[c];
-                msgToModule->voltages_r[c] = daisySignals_r[c];
+            msgToModule->signals.writeVoltages(daisySignals, maxChannels * 1);
+
+            if (solo) {
+                // Sum the daisy received solo signals with this module's signals
+                msgToModule->soloSignals.channels = std::max(signals.channels, soloSignals.channels);
+                for (int c = 0; c < msgToModule->soloSignals.channels; c++) {
+                    msgToModule->soloSignals.voltages_l[c] = soloSignals.voltages_l[c] + signals.voltages_l[c];
+                    msgToModule->soloSignals.voltages_r[c] = soloSignals.voltages_r[c] + signals.voltages_r[c];
+                }
+            } else {
+                msgToModule->soloSignals = soloSignals;
             }
 
             msgToModule->first_pos_x = firstPos.x;
@@ -262,6 +296,7 @@ struct DaisyChannel2 : Module {
         // Set lights
         if (lightDivider.process()) {
             lights[MUTE_LIGHT].value = (muted);
+            lights[MUTE2_LIGHT].value = (solo);
             lights[LINK_LIGHT_L].setBrightness(link_l);
             lights[LINK_LIGHT_R].setBrightness(link_r);
             lights[AUX1_LIGHT].setBrightness(aux1_send_amt);
@@ -270,7 +305,9 @@ struct DaisyChannel2 : Module {
     }
 };
 
-// Struct for keeping track of the value in the right click menu for the aux sends
+/**
+ * Struct for keeping track of the value in the right click menu for the aux sends
+ */
 struct SendQuantity : Quantity {
     DaisyChannel2* _module;
     int _group;
@@ -320,6 +357,9 @@ struct SendQuantity : Quantity {
     }
 };
 
+/**
+ * Slider used in menu for group aux send amounts
+ */
 template<class Q, int g>
 struct DaisyMenuSlider : ui::Slider {
     explicit DaisyMenuSlider(DaisyChannel2 *module) {
@@ -331,6 +371,9 @@ struct DaisyMenuSlider : ui::Slider {
     }
 };
 
+/**
+ * Display at top of module to show the channel strip number
+ */
 struct DaisyDisplay : LedDisplay {
     DaisyChannel2* module {};
     std::string fontPath = asset::plugin(pluginInstance, "res/fonts/EnvyCodeR-Bold.ttf");
@@ -378,10 +421,120 @@ struct DaisyDisplay : LedDisplay {
     }
 };
 
+/** Reads two adjacent lightIds, so `lightId` and `lightId + 1` must be defined */
+template <typename TBase = GrayModuleLightWidget>
+struct TRedGreenLight : TBase {
+    TRedGreenLight() {
+        this->addBaseColor(SCHEME_RED);
+        this->addBaseColor(SCHEME_GREEN);
+    }
+};
+using RedGreenLight = TRedGreenLight<>;
+
+/**
+ * QuantalDualLatch
+ *
+ * A switch button that can have multiple states. The way to get to the max
+ * state is to hold down the button for a few moments.
+ */
+template <typename TLight>
+struct QuantalDualLatch : VCVLatch {
+    // Keep track of how long user kept mouse button down
+    int holdDuration = 0;
+
+    // Whether hold duration was long enough to trigger max latch state
+    bool holdSucceed = false;
+
+    app::ModuleLightWidget* light;
+
+    QuantalDualLatch() {
+        light = new TLight;
+        // Move center of light to center of box
+        light->box.pos = box.size.div(2).minus(light->box.size.div(2));
+        addChild(light);
+    }
+
+    app::ModuleLightWidget* getLight() {
+        return light;
+    }
+
+    /**
+     * When user starts clicking on latch
+     */
+    void onDragStart(const DragStartEvent& e) override {
+        if (e.button != GLFW_MOUSE_BUTTON_LEFT) {
+            return;
+        }
+    }
+
+    /**
+     * While user is holding down mouse button
+     */
+    void onDragMove(const DragMoveEvent& e) override {
+        holdDuration++;
+        if (!holdSucceed && holdDuration >= HOLD_TRIGGER_DURATION) {
+            engine::ParamQuantity* pq = getParamQuantity();
+            float oldValue = pq->getValue();
+            pq->setValue(VALUE_SOLO);
+            saveHistory(oldValue, pq);
+            holdSucceed = true;
+        }
+    }
+
+    /**
+     * When user stops mouse click on latch
+     */
+    void onDragEnd(const DragEndEvent& e) override {
+        ParamWidget::onDragEnd(e);
+
+        if (e.button != GLFW_MOUSE_BUTTON_LEFT) {
+            return;
+        }
+
+        engine::ParamQuantity* pq = getParamQuantity();
+        if (pq && holdDuration < HOLD_TRIGGER_DURATION) {
+            // Don't do this logic if user JUST triggered hold state
+
+            float oldValue = pq->getValue();
+            if (pq->getValue() == VALUE_SOLO || pq->getValue() == VALUE_MUTE) {
+                // Going off mute or solo
+                pq->setValue(VALUE_OFF);
+            } else {
+                // Muting
+                pq->setValue(VALUE_MUTE);
+            }
+            saveHistory(oldValue, pq);
+        }
+
+        holdDuration = 0;
+        holdSucceed = false;
+    }
+
+    /**
+     * Save history of param change (for undo/redo integration)
+     */
+    void saveHistory(float oldValue, ParamQuantity* pq) {
+        float newValue = pq->getValue();
+        if (oldValue != newValue) {
+            // Push ParamChange history action
+            history::ParamChange* h = new history::ParamChange;
+            h->name = "move switch";
+            h->moduleId = module->id;
+            h->paramId = paramId;
+            h->oldValue = oldValue;
+            h->newValue = newValue;
+            APP->history->push(h);
+        }
+    }
+};
+
 struct DaisyChannelWidget2 : ModuleWidget {
 
     dsp::ClockDivider uiDivider;
 
+    /**
+     * Constructor
+     */
     explicit DaisyChannelWidget2(DaisyChannel2 *module) {
         setModule(module);
         setPanel(
@@ -413,7 +566,7 @@ struct DaisyChannelWidget2 : ModuleWidget {
         addParam(createParamCentered<Trimpot>(Vec(RACK_GRID_WIDTH - 0, 240.0), module, DaisyChannel2::PAN_PARAM));
 
         // Mute
-        addParam(createLightParam<VCVLightLatch<MediumSimpleLight<RedLight>>>(Vec(RACK_GRID_WIDTH - 9.0f, 254.0), module, DaisyChannel2::MUTE_PARAM, DaisyChannel2::MUTE_LIGHT));
+        addParam(createLightParam<QuantalDualLatch<MediumSimpleLight<RedGreenLight>>>(Vec(RACK_GRID_WIDTH - 9.0f, 254.0), module, DaisyChannel2::MUTE_PARAM, DaisyChannel2::MUTE_LIGHT));
 
         // Link lights
         addChild(createLightCentered<TinyLight<YellowLight>>(Vec(RACK_GRID_WIDTH - 4, 361.0f), module, DaisyChannel2::LINK_LIGHT_L));
@@ -426,6 +579,9 @@ struct DaisyChannelWidget2 : ModuleWidget {
         uiDivider.setDivision(DAISY_UI_DIVISION);
     }
 
+    /**
+     * Step function for widget
+     */
     void step() override {
         if (uiDivider.process()) {
             DaisyChannel2 *module = getModule<DaisyChannel2>();
@@ -438,6 +594,9 @@ struct DaisyChannelWidget2 : ModuleWidget {
         ModuleWidget::step();
     }
 
+    /**
+     * Make context menu items
+     */
     void appendContextMenu(Menu *menu) override {
         DaisyChannel2 *module = getModule<DaisyChannel2>();
 
@@ -446,12 +605,21 @@ struct DaisyChannelWidget2 : ModuleWidget {
         menu->addChild(new DaisyMenuSlider<SendQuantity, 2>(module)); // Aux send group 2
     }
 
+    /**
+     * Handle key presses while mouse is hovering this widget
+     */
     void onHoverKey(const HoverKeyEvent& e) override {
         if (e.action == GLFW_RELEASE) {
             if (e.keyName[0] == 'm') {
                 DaisyChannel2 *module = getModule<DaisyChannel2>();
                 // Toggle mute
-                module->params[DaisyChannel2::MUTE_PARAM].setValue(module->muted ? 0.f : 1.f);
+                module->params[DaisyChannel2::MUTE_PARAM].setValue(module->muted ? VALUE_OFF : VALUE_MUTE);
+                e.consume(this);
+            }
+            if (e.keyName[0] == 's') {
+                DaisyChannel2 *module = getModule<DaisyChannel2>();
+                // Toggle solo
+                module->params[DaisyChannel2::MUTE_PARAM].setValue(module->solo ? VALUE_OFF : VALUE_SOLO);
                 e.consume(this);
             }
         }
