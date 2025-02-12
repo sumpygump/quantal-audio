@@ -1,6 +1,8 @@
 #if !defined(DAISY_CONSTANTS_H)
 #define DAISY_CONSTANTS_H 1
 
+#include "QuantalAudio.hpp"
+
 // Hypothetically the max number of channels that could be chained
 constexpr float DAISY_DIVISOR = 16.f;
 
@@ -68,6 +70,28 @@ struct DaisyMessage {
     int channel_strip_id = 1;
     float first_pos_x = 0.0f;
     float first_pos_y = 0.0f;
+};
+
+struct SimpleSlewer {
+    float value = 0.f;
+
+    void setSlewSpeed(const float speed) {
+        float sampleRate = APP->engine->getSampleRate();
+        delta = 1.f / (sampleRate * 0.001f * speed);
+    }
+
+    float process(float new_value) {
+        if (new_value == value) {
+            return value;
+        }
+
+        value += math::clamp(new_value - value, -delta, delta);
+        return value;
+    }
+
+private:
+
+    float delta = 0.0005f;
 };
 
 #endif

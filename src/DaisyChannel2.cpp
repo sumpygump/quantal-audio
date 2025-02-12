@@ -1,6 +1,7 @@
 #include "QuantalAudio.hpp"
 #include "Daisy.hpp"
 
+constexpr float SLEW_SPEED = 6.f; // For smoothing out CV
 constexpr float VALUE_MUTE = 1.f;
 constexpr float VALUE_SOLO = -1.f;
 constexpr float VALUE_OFF = 0.f;
@@ -38,6 +39,7 @@ struct DaisyChannel2 : Module {
     bool muted = false;
     bool solo = false;
     bool directOutsPremute = false;
+    bool levelSlew = true;
     float link_l = 0.f;
     float link_r = 0.f;
     float aux1_send_amt = 0.f;
@@ -52,6 +54,7 @@ struct DaisyChannel2 : Module {
 
     DaisyMessage daisyInputMessage[2][1];
     DaisyMessage daisyOutputMessage[2][1];
+    SimpleSlewer levelSlewer;
 
     /**
      * Constructor
@@ -72,6 +75,8 @@ struct DaisyChannel2 : Module {
         configLight(LINK_LIGHT_L, "Daisy chain link input");
         configLight(LINK_LIGHT_R, "Daisy chain link output");
 
+        levelSlewer.setSlewSpeed(SLEW_SPEED);
+
         // Set the expander messages
         leftExpander.producerMessage = &daisyInputMessage[0];
         leftExpander.consumerMessage = &daisyInputMessage[1];
@@ -87,10 +92,10 @@ struct DaisyChannel2 : Module {
     json_t* dataToJson() override {
         json_t* rootJ = json_object();
 
-        // mute
         json_object_set_new(rootJ, "muted", json_boolean(muted));
         json_object_set_new(rootJ, "solo", json_boolean(solo));
         json_object_set_new(rootJ, "direct_outs_prefader", json_boolean(directOutsPremute));
+        json_object_set_new(rootJ, "level_slew", json_boolean(levelSlew));
         json_object_set_new(rootJ, "aux1_send_amt", json_real(aux1_send_amt));
         json_object_set_new(rootJ, "aux2_send_amt", json_real(aux2_send_amt));
 
@@ -117,6 +122,12 @@ struct DaisyChannel2 : Module {
         const json_t* directOutsPremuteJ = json_object_get(rootJ, "direct_outs_prefader");
         if (directOutsPremuteJ) {
             directOutsPremute = json_is_true(directOutsPremuteJ);
+        }
+
+        // level slew
+        const json_t* levelSlewJ = json_object_get(rootJ, "level_slew");
+        if (levelSlewJ) {
+            levelSlew = json_is_true(levelSlewJ);
         }
 
         // aux 1
@@ -147,8 +158,13 @@ struct DaisyChannel2 : Module {
         muted = false;
         solo = false;
         directOutsPremute = false;
+        levelSlew = true;
         aux1_send_amt = 0.0f;
         aux2_send_amt = 0.0f;
+    }
+
+    void onSampleRateChange() override {
+        levelSlewer.setSlewSpeed(SLEW_SPEED);
     }
 
     StereoVoltages signals = {};
@@ -203,7 +219,10 @@ struct DaisyChannel2 : Module {
 
             if (inputs[LVL_CV_INPUT].isConnected()) {
                 for (int c = 0; c < signals.channels; c++) {
-                    const float _cv = clamp(inputs[LVL_CV_INPUT].getPolyVoltage(c) / 10.f, 0.f, 1.f);
+                    float _cv = clamp(inputs[LVL_CV_INPUT].getPolyVoltage(c) / 10.f, 0.f, 1.f);
+                    if (levelSlew) {
+                        _cv = levelSlewer.process(_cv);
+                    }
                     signals.voltages_l[c] *= _cv;
                     signals.voltages_r[c] *= _cv;
                 }
@@ -622,6 +641,7 @@ struct DaisyChannelWidget2 : ModuleWidget {
         menu->addChild(new DaisyMenuSlider<SendQuantity, 1>(module)); // Aux send group 1
         menu->addChild(new DaisyMenuSlider<SendQuantity, 2>(module)); // Aux send group 2
         menu->addChild(createBoolPtrMenuItem("Direct outs pre-mute", "", &module->directOutsPremute));
+        menu->addChild(createBoolPtrMenuItem("Smooth level CV", "", &module->levelSlew));
     }
 
     /**

@@ -1,4 +1,7 @@
 #include "QuantalAudio.hpp"
+#include "Daisy.hpp"
+
+constexpr float SLEW_SPEED = 6.f; // For smoothing out CV
 
 struct MasterMixer : Module {
     enum ParamIds {
@@ -19,6 +22,13 @@ struct MasterMixer : Module {
         NUM_OUTPUTS
     };
 
+    bool levelSlew = true;
+    float mix[16] = {};
+    float mix_cv[16] = {};
+    float mix_out[2][16] = {};
+
+    SimpleSlewer levelSlewer;
+
     MasterMixer() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS);
         configParam(MIX_LVL_PARAM, 0.0f, 2.0f, 1.0f, "Mix level", " dB", -10, 20);
@@ -36,10 +46,37 @@ struct MasterMixer : Module {
         configOutput(MIX_OUTPUT_2, "Mix 2");
     }
 
+    json_t* dataToJson() override {
+        json_t* rootJ = json_object();
+
+        json_object_set_new(rootJ, "level_slew", json_boolean(levelSlew));
+
+        return rootJ;
+    }
+
+    void dataFromJson(json_t* rootJ) override {
+        // level slew
+        const json_t* levelSlewJ = json_object_get(rootJ, "level_slew");
+        if (levelSlewJ) {
+            levelSlew = json_is_true(levelSlewJ);
+        }
+    }
+
+    /**
+     * When user resets this module
+     */
+    void onReset() override {
+        levelSlew = true;
+    }
+
+    void onSampleRateChange() override {
+        levelSlewer.setSlewSpeed(SLEW_SPEED);
+    }
+
     void process(const ProcessArgs &args) override {
-        float mix[16] = {};
-        float mix_cv[16] = {};
-        float mix_out[2][16] = {{}, {}};
+        mix[15] = {};
+        mix_cv[15] = {};
+        mix_out[1][15] = {};
         int maxChannels = 1;
         bool is_mono = (params[MONO_PARAM].getValue() > 0.0f);
         float master_gain = params[MIX_LVL_PARAM].getValue();
@@ -75,6 +112,9 @@ struct MasterMixer : Module {
         if (inputs[MIX_CV_INPUT].isConnected()) {
             for (int c = 0; c < maxChannels; c++) {
                 mix_cv[c] = clamp(inputs[MIX_CV_INPUT].getPolyVoltage(c) / 10.f, 0.f, 1.f);
+                if (levelSlew) {
+                    mix_cv[c] = levelSlewer.process(mix_cv[c]);
+                }
             }
         } else {
             for (int c = 0; c < maxChannels; c++) {
@@ -145,6 +185,13 @@ struct MasterMixerWidget : ModuleWidget {
         // Mix outputs
         addOutput(createOutput<ThemedPJ301MPort>(Vec((RACK_GRID_WIDTH * 2.5f) - (25.0f + 5.0f), 320.0), module, MasterMixer::MIX_OUTPUT));
         addOutput(createOutput<ThemedPJ301MPort>(Vec((RACK_GRID_WIDTH * 2.5f) + 5.0f, 320.0), module, MasterMixer::MIX_OUTPUT_2));
+    }
+
+    void appendContextMenu(Menu *menu) override {
+        MasterMixer* module = getModule<MasterMixer>();
+
+        menu->addChild(new MenuSeparator);
+        menu->addChild(createBoolPtrMenuItem("Smooth level CV", "", &module->levelSlew));
     }
 };
 

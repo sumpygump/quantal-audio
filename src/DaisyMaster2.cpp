@@ -1,6 +1,8 @@
 #include "QuantalAudio.hpp"
 #include "Daisy.hpp"
 
+constexpr float SLEW_SPEED = 6.f; // For smoothing out CV
+
 struct DaisyMaster2 : Module {
     enum ParamIds {
         MIX_LVL_PARAM,
@@ -24,6 +26,10 @@ struct DaisyMaster2 : Module {
 
     bool muted = false;
     float link_l = 0.f;
+    bool levelSlew = true;
+
+    Vec widgetPos;
+
     dsp::ClockDivider lightDivider;
 
     enum DaisyModelIds {
@@ -34,9 +40,9 @@ struct DaisyMaster2 : Module {
         NUM_MODELS
     };
     Model* daisyModels[NUM_MODELS] {};
-    Vec widgetPos;
 
     DaisyMessage daisyMessages[2][1];
+    SimpleSlewer levelSlewer;
     StereoVoltages signals = {};
     StereoVoltages soloSignals = {};
 
@@ -50,6 +56,8 @@ struct DaisyMaster2 : Module {
         configOutput(MIX_OUTPUT_2, "Mix R");
 
         configLight(LINK_LIGHT_L, "Daisy chain link input");
+
+        levelSlewer.setSlewSpeed(SLEW_SPEED);
 
         // Set the left expander message instances
         leftExpander.producerMessage = &daisyMessages[0];
@@ -67,8 +75,8 @@ struct DaisyMaster2 : Module {
     json_t* dataToJson() override {
         json_t* rootJ = json_object();
 
-        // mute
         json_object_set_new(rootJ, "muted", json_boolean(muted));
+        json_object_set_new(rootJ, "level_slew", json_boolean(levelSlew));
 
         return rootJ;
     }
@@ -79,6 +87,24 @@ struct DaisyMaster2 : Module {
         if (mutedJ) {
             muted = json_is_true(mutedJ);
         }
+
+        // level slew
+        const json_t* levelSlewJ = json_object_get(rootJ, "level_slew");
+        if (levelSlewJ) {
+            levelSlew = json_is_true(levelSlewJ);
+        }
+    }
+
+    /**
+     * When user resets this module
+     */
+    void onReset() override {
+        muted = false;
+        levelSlew = true;
+    }
+
+    void onSampleRateChange() override {
+        levelSlewer.setSlewSpeed(SLEW_SPEED);
     }
 
     void process(const ProcessArgs &args) override {
@@ -118,7 +144,10 @@ struct DaisyMaster2 : Module {
 
                 if (inputs[MIX_CV_INPUT].isConnected()) {
                     for (int c = 0; c < soloSignals.channels; c++) {
-                        const float mix_cv = clamp(inputs[MIX_CV_INPUT].getPolyVoltage(c) / 10.f, 0.f, 1.f);
+                        float mix_cv = clamp(inputs[MIX_CV_INPUT].getPolyVoltage(c) / 10.f, 0.f, 1.f);
+                        if (levelSlew) {
+                            mix_cv = levelSlewer.process(mix_cv);
+                        }
                         soloSignals.voltages_l[c] *= mix_cv;
                         soloSignals.voltages_r[c] *= mix_cv;
                     }
@@ -137,7 +166,10 @@ struct DaisyMaster2 : Module {
 
                 if (inputs[MIX_CV_INPUT].isConnected()) {
                     for (int c = 0; c < signals.channels; c++) {
-                        const float mix_cv = clamp(inputs[MIX_CV_INPUT].getPolyVoltage(c) / 10.f, 0.f, 1.f);
+                        float mix_cv = clamp(inputs[MIX_CV_INPUT].getPolyVoltage(c) / 10.f, 0.f, 1.f);
+                        if (levelSlew) {
+                            mix_cv = levelSlewer.process(mix_cv);
+                        }
                         signals.voltages_l[c] *= mix_cv;
                         signals.voltages_r[c] *= mix_cv;
                     }
@@ -290,7 +322,10 @@ struct DaisyMasterWidget2 : ModuleWidget {
     }
 
     void appendContextMenu(Menu *menu) override {
-        const DaisyMaster2* module = getModule<DaisyMaster2>();
+        DaisyMaster2* module = getModule<DaisyMaster2>();
+
+        menu->addChild(new MenuSeparator);
+        menu->addChild(createBoolPtrMenuItem("Smooth level CV", "", &module->levelSlew));
 
         menu->addChild(new MenuSeparator);
         menu->addChild(createMenuItem("Create 1 channel", "", [ = ]() {
