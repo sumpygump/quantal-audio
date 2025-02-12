@@ -85,6 +85,8 @@ struct DaisyMaster2 : Module {
         muted = params[MUTE_PARAM].getValue() > 0.f;
 
         widgetPos = Vec(0, 0);
+        signals = {};
+        soloSignals = {};
 
         if (!muted) {
             // Get daisy-chained data from left-side linked module
@@ -145,13 +147,17 @@ struct DaisyMaster2 : Module {
                 outputs[MIX_OUTPUT_2].setChannels(signals.channels);
                 outputs[MIX_OUTPUT_2].writeVoltages(signals.voltages_r);
             }
+        }
 
-            // Set output to right-side linked VU meter module
-            if (rightExpander.module && rightExpander.module->model == modelDaisyChannelVu) {
-                DaisyMessage* msgToModule = static_cast<DaisyMessage*>(rightExpander.module->leftExpander.producerMessage);
+        // Set output to right-side linked VU meter module
+        if (rightExpander.module && rightExpander.module->model == modelDaisyChannelVu) {
+            DaisyMessage* msgToModule = static_cast<DaisyMessage*>(rightExpander.module->leftExpander.producerMessage);
+            if (soloSignals.channels > 0) {
+                msgToModule->singleSignals = soloSignals;
+            } else {
                 msgToModule->singleSignals = signals;
-                rightExpander.module->leftExpander.messageFlipRequested = true;
             }
+            rightExpander.module->leftExpander.messageFlipRequested = true;
         }
 
         // Set lights

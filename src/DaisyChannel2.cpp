@@ -37,6 +37,7 @@ struct DaisyChannel2 : Module {
 
     bool muted = false;
     bool solo = false;
+    bool directOutsPremute = false;
     float link_l = 0.f;
     float link_r = 0.f;
     float aux1_send_amt = 0.f;
@@ -89,6 +90,7 @@ struct DaisyChannel2 : Module {
         // mute
         json_object_set_new(rootJ, "muted", json_boolean(muted));
         json_object_set_new(rootJ, "solo", json_boolean(solo));
+        json_object_set_new(rootJ, "direct_outs_prefader", json_boolean(directOutsPremute));
         json_object_set_new(rootJ, "aux1_send_amt", json_real(aux1_send_amt));
         json_object_set_new(rootJ, "aux2_send_amt", json_real(aux2_send_amt));
 
@@ -109,6 +111,12 @@ struct DaisyChannel2 : Module {
         const json_t* soloJ = json_object_get(rootJ, "solo");
         if (soloJ) {
             solo = json_is_true(soloJ);
+        }
+
+        // directOutsPremute
+        const json_t* directOutsPremuteJ = json_object_get(rootJ, "direct_outs_prefader");
+        if (directOutsPremuteJ) {
+            directOutsPremute = json_is_true(directOutsPremuteJ);
         }
 
         // aux 1
@@ -138,6 +146,7 @@ struct DaisyChannel2 : Module {
     void onReset() override {
         muted = false;
         solo = false;
+        directOutsPremute = false;
         aux1_send_amt = 0.0f;
         aux2_send_amt = 0.0f;
     }
@@ -168,11 +177,16 @@ struct DaisyChannel2 : Module {
         Vec firstPos = widgetPos;
 
         // Get inputs from this channel strip
-        if (!muted) {
+        if (!muted || directOutsPremute) {
             const float gain = params[CH_LVL_PARAM].getValue();
             const float pan = params[PAN_PARAM].getValue();
 
             signals.channels = std::max(inputs[CH_INPUT_1].getChannels(), inputs[CH_INPUT_2].getChannels());
+            if (solo && signals.channels == 0) {
+                // Force it to be one if this channel strip is solo so we pull
+                // in even blank input
+                signals.channels = 1;
+            }
 
             inputs[CH_INPUT_1].readVoltages(signals.voltages_l);
             if (inputs[CH_INPUT_2].isConnected()) {
@@ -202,6 +216,10 @@ struct DaisyChannel2 : Module {
 
         outputs[CH_OUTPUT_2].setChannels(signals.channels);
         outputs[CH_OUTPUT_2].writeVoltages(signals.voltages_r);
+
+        if (muted && directOutsPremute) {
+            signals = {};
+        }
 
         // Get daisy-chained data from left-side linked module
         if (leftExpander.module && (
@@ -603,6 +621,7 @@ struct DaisyChannelWidget2 : ModuleWidget {
         menu->addChild(new MenuSeparator);
         menu->addChild(new DaisyMenuSlider<SendQuantity, 1>(module)); // Aux send group 1
         menu->addChild(new DaisyMenuSlider<SendQuantity, 2>(module)); // Aux send group 2
+        menu->addChild(createBoolPtrMenuItem("Direct outs pre-mute", "", &module->directOutsPremute));
     }
 
     /**
