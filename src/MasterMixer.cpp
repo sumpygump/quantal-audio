@@ -23,10 +23,6 @@ struct MasterMixer : Module {
     };
 
     bool levelSlew = true;
-    float mix[16] = {};
-    float mix_cv[16] = {};
-    float mix_out[2][16] = {};
-
     SimpleSlewer levelSlewer;
 
     MasterMixer() {
@@ -74,12 +70,13 @@ struct MasterMixer : Module {
     }
 
     void process(const ProcessArgs &args) override {
-        mix[15] = {};
-        mix_cv[15] = {};
-        mix_out[1][15] = {};
+        float mix[16] = {};
+        float mix_cv[16] = {};
+        float mix_out[2][16] = {};
+
         int maxChannels = 1;
-        bool is_mono = (params[MONO_PARAM].getValue() > 0.0f);
-        float master_gain = params[MIX_LVL_PARAM].getValue();
+        const bool is_mono = (params[MONO_PARAM].getValue() > 0.0f);
+        const float master_gain = params[MIX_LVL_PARAM].getValue();
 
         for (int i = 0; i < 2; i++) {
             int channels = 1;
@@ -91,12 +88,9 @@ struct MasterMixer : Module {
 
                 inputs[CH_INPUT + i].readVoltages(ch);
 
-                float gain = std::pow(params[LVL_PARAM + i].getValue(), 2.f);
+                const float gain = std::pow(params[LVL_PARAM + i].getValue(), 2.f);
                 for (int c = 0; c < channels; c++) {
                     ch[c] *= gain;
-                }
-
-                for (int c = 0; c < channels; c++) {
                     mix[c] += ch[c];
                     mix_out[i][c] += ch[c];
                 }
@@ -125,7 +119,7 @@ struct MasterMixer : Module {
         if (!is_mono && (inputs[CH_INPUT + 0].isConnected() && inputs[CH_INPUT + 1].isConnected())) {
             // If the ch 2 jack is active use stereo mode
             for (int c = 0; c < maxChannels; c++) {
-                float attenuate = master_gain * mix_cv[c];
+                const float attenuate = master_gain * mix_cv[c];
                 mix_out[0][c] *= attenuate;
                 mix_out[1][c] *= attenuate;
             }
@@ -136,7 +130,7 @@ struct MasterMixer : Module {
         } else {
             // Otherwise use mono->stereo mode
             for (int c = 0; c < maxChannels; c++) {
-                float attenuate = master_gain * mix_cv[c];
+                const float attenuate = master_gain * mix_cv[c];
                 mix[c] *= attenuate;
             }
             outputs[MIX_OUTPUT].setChannels(maxChannels);

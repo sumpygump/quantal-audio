@@ -522,7 +522,7 @@ struct QuantalDualLatch : VCVLatch {
      * When user stops mouse click on latch
      */
     void onDragEnd(const DragEndEvent& e) override {
-        ParamWidget::onDragEnd(e);
+        SvgSwitch::onDragEnd(e);
 
         if (e.button != GLFW_MOUSE_BUTTON_LEFT) {
             return;
