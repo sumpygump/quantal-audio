@@ -52,10 +52,10 @@ mixer modules with several channels linked together:
 
 ## D-MX2 | Daisy Mix Master STEREO | 3HP
 
-The final module in the end of a chain, is a master bus for the Daisy-chained
-channels. It has a master fader knob with CV control, a mute button, and two
-output channels (L and R). The master bus will clamp signals to (+/-) 12 volt
-output signal.
+The Dais Mix Master is the final module in the end of a Daisy chain mixer, is a
+master bus for the Daisy-chained channels. It has a master fader knob with CV
+control, a mute button, and two output channels (L and R). The master bus will
+clamp signals to (+/-) 12 volt output signal.
 
 | Parameter | Range | Description |
 | ---- | ---- | ---- |
@@ -65,8 +65,15 @@ output signal.
 | Output : Channel L mix | -10v to 10v | Final output signal for left channel post level knob and CV. |
 | Output : Channel R mix | -10v to 10v | Final output signal for right channel post level knob and CV. |
 
-The context menu of this module provides a few convenience entries to create
-channel modules to the left, with the following options:
+### Context menu
+
+**Smooth level CV.** When enabled, this will add a 6ms slew to the level CV
+input. This makes it better for general handling of abrupt changes in signal.
+(Enabled by default).
+
+**Create *n* channel(s)...** The context menu of this module provides a few
+convenience entries to create channel modules to the left, with the following
+options:
 
  - Create 1 channel
  - Create 1 channel with vu meter
@@ -101,6 +108,21 @@ CV).
 | Output : Channel R output | -10v to 10v | Final output signal for right channel post fader, CV, pan and mute for this channel. Only use if you want to pipe output just from this channel to elsewhere in your patch. |
 | Daisy chain lights | | The daisy chain lights at the bottom of this module in the blue 'daisy' area indicate that this module is connected with other modules in this chain. The left light means it successfully is connected to a daisy mix module on the left side and the right light means it successfully is connected to a supported daisy mix module on the right side. The output signals and aux send signals will be passed down the chain to be processed by other daisy mix modules. |
 | Aux send | | To send the signal from this channel strip to an aux group later in the chain, use the context menu: Aux Group 1 Send Amt and Aux Group 2 Send Amt. The amount (0% to 100%) sent can be collected and processed by an AUX module later in the chain. |
+
+### Context menu
+
+**Aux Group *x* Send Amt.** Use these sliders to send the signal (post-fader)
+to the appropriate Aux module later in the chain (see AUX module below).
+
+**Direct outs pre-mute.** Enable this to send the signal through the direct
+outs of this channel strip before the mute button. Can use this to handle
+processing the audio of this channel strip elsewhere or putting an effect on
+the signal to be brought back in later in the chain without mixing in the
+original dry signal too.
+
+**Smooth level CV.** When enabled, this will add a 6ms slew to the level CV
+input. This makes it better for general handling of abrupt changes in signal.
+(Enabled by default).
 
 ![Daisy mix channel context menu showing the aux group sends](https://github.com/sumpygump/quantal-audio/raw/master/doc/img/daisy-channel-context-menu.png)
 
@@ -144,6 +166,12 @@ the down position, it will take 6 inputs to 2 outputs.
 
 ## MIXER-2 | Master Mixer | 5HP
 
-A 2-channel mixer with a mono/stereo switch. In mono mode, input channel one will
-be copied to channel two's output. This is useful if you want to copy a mono
-signal to route to modules that need stereo inputs.
+The Mixer-2 is a two-channel mixer with a mono/stereo switch. In mono mode,
+input channel one will be copied to channel two's output. This is useful if you
+want to copy a mono signal to route to modules that need stereo inputs.
+
+### Context menu
+
+**Smooth level CV.** When enabled, this will add a 6ms slew to the level CV
+input. This makes it better for general handling of abrupt changes in signal.
+(Enabled by default).
