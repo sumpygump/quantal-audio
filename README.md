@@ -61,7 +61,7 @@ clamp signals to (+/-) 12 volt output signal.
 | ---- | ---- | ---- |
 | Param : Mix Level | -inf dB to +6 dB | The overall mix level for all collected daisy channels to the left. The center default value is 0dB (100% of incoming mix signal). |
 | Input : CV mix level input | -10v to 10v | Voltage input controls mix level amount for master bus. |
-| Param : Mute/solo button | on/off | When enabled, this button will mute all signals for the master bus. To enable solo, longpress the button (1.5 seconds). It will turn green when in solo mode. Note, if you automate this you should know that -1.0 is solo, 0.0 is off and 1.0 is mute values.|
+| Param : Mute/solo button | -1,0,1v (on/off) | When enabled, this button will mute all signals for the master bus. To enable solo, longpress the button (1.5 seconds). It will turn green when in solo mode. Note, if you automate this you should know that the underlying values are: `-1.0`=solo, `0.0`=off and `1.0`=mute.|
 | Output : Channel L mix | -10v to 10v | Final output signal for left channel post level knob and CV. |
 | Output : Channel R mix | -10v to 10v | Final output signal for right channel post level knob and CV. |
 
