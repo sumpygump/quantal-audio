@@ -1,5 +1,9 @@
 # Quantal Audio VCV Rack Modules | Changelog
 
+## 2.2.2 (2025-02-14)
+
+ - Fix bug with smooth level CV to support 16-channel polyphony
+
 ## 2.2.1 (2025-02-13)
 
  - Add ability to solo a Daisy channel by long-holding the mute button

@@ -42,7 +42,7 @@ struct DaisyMaster2 : Module {
     Model* daisyModels[NUM_MODELS] {};
 
     DaisyMessage daisyMessages[2][1];
-    SimpleSlewer levelSlewer;
+    SimpleSlewer levelSlewer[16];
     StereoVoltages signals = {};
     StereoVoltages soloSignals = {};
 
@@ -57,7 +57,9 @@ struct DaisyMaster2 : Module {
 
         configLight(LINK_LIGHT_L, "Daisy chain link input");
 
-        levelSlewer.setSlewSpeed(SLEW_SPEED);
+        for (int c = 0; c < 16; c++) {
+            levelSlewer[c].setSlewSpeed(SLEW_SPEED);
+        }
 
         // Set the left expander message instances
         leftExpander.producerMessage = &daisyMessages[0];
@@ -104,7 +106,9 @@ struct DaisyMaster2 : Module {
     }
 
     void onSampleRateChange() override {
-        levelSlewer.setSlewSpeed(SLEW_SPEED);
+        for (int c = 0; c < 16; c++) {
+            levelSlewer[c].setSlewSpeed(SLEW_SPEED);
+        }
     }
 
     void process(const ProcessArgs &args) override {
@@ -146,7 +150,7 @@ struct DaisyMaster2 : Module {
                     for (int c = 0; c < soloSignals.channels; c++) {
                         float mix_cv = clamp(inputs[MIX_CV_INPUT].getPolyVoltage(c) / 10.f, 0.f, 1.f);
                         if (levelSlew) {
-                            mix_cv = levelSlewer.process(mix_cv);
+                            mix_cv = levelSlewer[c].process(mix_cv);
                         }
                         soloSignals.voltages_l[c] *= mix_cv;
                         soloSignals.voltages_r[c] *= mix_cv;
@@ -168,7 +172,7 @@ struct DaisyMaster2 : Module {
                     for (int c = 0; c < signals.channels; c++) {
                         float mix_cv = clamp(inputs[MIX_CV_INPUT].getPolyVoltage(c) / 10.f, 0.f, 1.f);
                         if (levelSlew) {
-                            mix_cv = levelSlewer.process(mix_cv);
+                            mix_cv = levelSlewer[c].process(mix_cv);
                         }
                         signals.voltages_l[c] *= mix_cv;
                         signals.voltages_r[c] *= mix_cv;

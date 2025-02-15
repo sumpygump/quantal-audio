@@ -23,7 +23,7 @@ struct MasterMixer : Module {
     };
 
     bool levelSlew = true;
-    SimpleSlewer levelSlewer;
+    SimpleSlewer levelSlewer[16];
 
     MasterMixer() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS);
@@ -40,6 +40,10 @@ struct MasterMixer : Module {
         configOutput(CH_OUTPUT + 1, "Channel 2");
         configOutput(MIX_OUTPUT, "Mix 1");
         configOutput(MIX_OUTPUT_2, "Mix 2");
+
+        for (int c = 0; c < 16; c++) {
+            levelSlewer[c].setSlewSpeed(SLEW_SPEED);
+        }
     }
 
     json_t* dataToJson() override {
@@ -66,7 +70,9 @@ struct MasterMixer : Module {
     }
 
     void onSampleRateChange() override {
-        levelSlewer.setSlewSpeed(SLEW_SPEED);
+        for (int c = 0; c < 16; c++) {
+            levelSlewer[c].setSlewSpeed(SLEW_SPEED);
+        }
     }
 
     void process(const ProcessArgs &args) override {
@@ -107,7 +113,7 @@ struct MasterMixer : Module {
             for (int c = 0; c < maxChannels; c++) {
                 mix_cv[c] = clamp(inputs[MIX_CV_INPUT].getPolyVoltage(c) / 10.f, 0.f, 1.f);
                 if (levelSlew) {
-                    mix_cv[c] = levelSlewer.process(mix_cv[c]);
+                    mix_cv[c] = levelSlewer[c].process(mix_cv[c]);
                 }
             }
         } else {

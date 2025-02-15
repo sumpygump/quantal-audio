@@ -54,7 +54,7 @@ struct DaisyChannel2 : Module {
 
     DaisyMessage daisyInputMessage[2][1];
     DaisyMessage daisyOutputMessage[2][1];
-    SimpleSlewer levelSlewer;
+    SimpleSlewer levelSlewer[16];
 
     /**
      * Constructor
@@ -75,7 +75,9 @@ struct DaisyChannel2 : Module {
         configLight(LINK_LIGHT_L, "Daisy chain link input");
         configLight(LINK_LIGHT_R, "Daisy chain link output");
 
-        levelSlewer.setSlewSpeed(SLEW_SPEED);
+        for (int c = 0; c < 16; c++) {
+            levelSlewer[c].setSlewSpeed(SLEW_SPEED);
+        }
 
         // Set the expander messages
         leftExpander.producerMessage = &daisyInputMessage[0];
@@ -164,7 +166,9 @@ struct DaisyChannel2 : Module {
     }
 
     void onSampleRateChange() override {
-        levelSlewer.setSlewSpeed(SLEW_SPEED);
+        for (int c = 0; c < 16; c++) {
+            levelSlewer[c].setSlewSpeed(SLEW_SPEED);
+        }
     }
 
     StereoVoltages signals = {};
@@ -221,7 +225,7 @@ struct DaisyChannel2 : Module {
                 for (int c = 0; c < signals.channels; c++) {
                     float _cv = clamp(inputs[LVL_CV_INPUT].getPolyVoltage(c) / 10.f, 0.f, 1.f);
                     if (levelSlew) {
-                        _cv = levelSlewer.process(_cv);
+                        _cv = levelSlewer[c].process(_cv);
                     }
                     signals.voltages_l[c] *= _cv;
                     signals.voltages_r[c] *= _cv;
